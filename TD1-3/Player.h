@@ -6,6 +6,7 @@ class Player {
 			Vector2 pos;
 			Vector2 vel;
 		};
+		PlayerStatus status;
 		void Initialize();
 		void Update();
 		void Draw();
