@@ -283,7 +283,7 @@ void SceneManager::Update(char* keys, char* preKeys) {
 		LoadMapCSV("./Map/Map4.csv", gMap);
 		DrawMapChips();
       
-		player_->Update();
+		player_->Update(gMap);
 
 		if (player_->CheckTileCollisions(gMap)) {
 			StartFade(SceneType::GAMEOVER);

@@ -148,63 +148,64 @@ void Player::Update(int map[MAP_HEIGHT][MAP_WIDTH]) {
 void Player::CheckGimmicks(int map[MAP_HEIGHT][MAP_WIDTH])
 {
 
-	// プレイヤーの中心座標に対応するマップチップ番号を取得
-	int cX = (int)(status.pos.x / TILE_SIZE);
-	int cY = (int)(status.pos.y / TILE_SIZE);
+    // プレイヤーの中心座標に対応するマップチップ番号を取得
+    int cX = (int)(status.pos.x / TILE_SIZE);
+    int cY = (int)(status.pos.y / TILE_SIZE);
 
-	// 配列外参照防止
-	if (cX < 0 || cX >= MAP_WIDTH || cY < 0 || cY >= MAP_HEIGHT) return;
+    // 配列外参照防止
+    if (cX < 0 || cX >= MAP_WIDTH || cY < 0 || cY >= MAP_HEIGHT) return;
 
-	int tile = map[cY][cX];
+    int tile = map[cY][cX];
 
-	switch (tile)
-	{
-		// ▼ 危険地帯
-	case MAP_DANGER:
-		// ミス処理へ（初期位置に戻すなど）
-		// Initialize(); 
-		break;
+    switch (tile)
+    {
+        // ▼ 危険地帯
+    case MAP_DANGER:
+        // ミス処理へ（初期位置に戻すなど）
+        // Initialize(); 
+        break;
 
-		// ▼ ゴール
-	case MAP_GOAL:
-		// シーン遷移フラグを立てるなど
-		break;
+        // ▼ ゴール
+    case MAP_GOAL:
+        // シーン遷移フラグを立てるなど
+        break;
 
-		// ▼ 鳥（減速）
-	case MAP_BIRD:
-		status.vel.x *= 0.5f; // 速度を半分にする
-		status.vel.y *= 0.5f;
-		break;
+        // ▼ 鳥（減速）
+    case MAP_BIRD:
+        status.vel.x *= 0.5f; // 速度を半分にする
+        status.vel.y *= 0.5f;
+        break;
 
-		// ▼ トランポリン
-	case MAP_TRAMPOLINE:
-		status.vel.y = -10.0f; // 強制的に上へ跳ねさせる
-		break;
+        // ▼ トランポリン
+    case MAP_TRAMPOLINE:
+        status.vel.y = -10.0f; // 強制的に上へ跳ねさせる
+        break;
 
-		// ▼ ワープ (In -> Out)
-	case MAP_WARPIN:
-		// マップ全体から出口(WARPOUT)を探して移動
-		for (int y = 0; y < MAP_HEIGHT; y++)
-		{
-			for (int x = 0; x < MAP_WIDTH; x++)
-			{
-				if (map[y][x] == MAP_WARPOUT) {
-					status.pos.x = (float)(x * TILE_SIZE) + status.radius;
-					status.pos.y = (float)(y * TILE_SIZE) + status.radius;
-					return; // 見つかったら即終了
-				}
-			}
-		}
-		break;
+        // ▼ ワープ (In -> Out)
+    case MAP_WARPIN:
+        // マップ全体から出口(WARPOUT)を探して移動
+        for (int y = 0; y < MAP_HEIGHT; y++)
+        {
+            for (int x = 0; x < MAP_WIDTH; x++)
+            {
+                if (map[y][x] == MAP_WARPOUT) {
+                    status.pos.x = (float)(x * TILE_SIZE) + status.radius;
+                    status.pos.y = (float)(y * TILE_SIZE) + status.radius;
+                    return; // 見つかったら即終了
+                }
+            }
+        }
+        break;
 
-		// ▼ ドローン（ここが少し難しい）
-		// ドローンは「上から踏んだか」「それ以外か」判定が必要なので
-		// CheckTileCollisions の床判定の方に組み込むのが良いかもしれません。
-		// ここでは簡易的に「触れたら減速」だけ書いておきます。
-	case MAP_DRONE:
-		status.vel.x *= 0.8f;
-		break;
-	}
+        // ▼ ドローン（ここが少し難しい）
+        // ドローンは「上から踏んだか」「それ以外か」判定が必要なので
+        // CheckTileCollisions の床判定の方に組み込むのが良いかもしれません。
+        // ここでは簡易的に「触れたら減速」だけ書いておきます。
+    case MAP_DRONE:
+        status.vel.x *= 0.8f;
+        break;
+    }
+}
 
 
 
