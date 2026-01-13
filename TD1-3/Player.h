@@ -11,9 +11,6 @@ public:
 
 	PlayerStatus status;
 	int Accelerated = 0;
-	void Initialize();
-	void Update();
-	void Draw();
 
     // ギミック判定用の関数を追加
     void CheckGimmicks(int map[MAP_HEIGHT][MAP_WIDTH]);
