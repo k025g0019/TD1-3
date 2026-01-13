@@ -7,19 +7,29 @@ enum MapType {
 
 	MAP_GOAL = 2,//ゴール地点これまたシンプル
 
-	MAP_DANGER = 3//危険地帯触れたらアウトのデンジャー
+	MAP_DANGER = 3,//危険地帯触れたらアウトのデンジャー
+
+	MAP_BIRD = 4,
+
+	MAP_DRONE = 5,
+
+	MAP_WARPIN = 6,
+
+	MAP_WARPOUT = 7,
+
+	MAP_TRAMPOLINE = 8
 };
 
-const int x = MAP_WIDTH;
-const int y = MAP_HEIGHT;
+const int kMapWidth = MAP_WIDTH;
+const int kMapHeight = MAP_HEIGHT;
 const int tileSize = 16;
 
 
-float MapCollisionLeft(float* playerPosX, float* playerPosY, float* radius, int mapDeta[y][x]);
+float MapCollisionLeft(float* playerPosX, float* playerPosY, float* radius, int mapDeta[kMapHeight][kMapWidth]);
 
-float MapCollisionRight(float* playerPosX, float* playerPosY, float* radius, int mapDeta[y][x]);
+float MapCollisionRight(float* playerPosX, float* playerPosY, float* radius, int mapDeta[kMapHeight][kMapWidth]);
 
-float MapCollisionTop(float* playerPosX, float* playerPosY, float* radius, int mapDeta[y][x]);
+float MapCollisionTop(float* playerPosX, float* playerPosY, float* radius, int mapDeta[kMapHeight][kMapWidth]);
 
-float MapCollisionBottom(float* playerPosX, float* playerPosY, float* radius, int mapDeta[y][x]);
+float MapCollisionBottom(float* playerPosX, float* playerPosY, float* radius, int mapDeta[kMapHeight][kMapWidth]);
 #pragma once

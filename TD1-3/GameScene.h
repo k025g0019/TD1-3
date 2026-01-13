@@ -16,6 +16,7 @@ enum class SceneType {
 
 class SceneManager {
 public:
+
     // コンストラクタ / デストラクタ
     SceneManager();
     ~SceneManager();

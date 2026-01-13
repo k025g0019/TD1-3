@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include "Vector.h"
+#include"Map.h"
 class Player {
 public:
     struct PlayerStatus {
@@ -10,8 +11,11 @@ public:
 
     PlayerStatus status;
 
+    // ギミック判定用の関数を追加
+    void CheckGimmicks(int map[MAP_HEIGHT][MAP_WIDTH]);
+
     void Initialize();
-    void Update();
+    void Update(int map[MAP_HEIGHT][MAP_WIDTH]);
     void Draw();
 
     bool CheckTileCollisions(int map[45][180]);
