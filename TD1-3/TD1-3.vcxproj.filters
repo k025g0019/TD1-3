@@ -32,6 +32,15 @@
     <ClCompile Include="MapCollision.cpp">
       <Filter>KamataEngine</Filter>
     </ClCompile>
+    <ClCompile Include="StageGimmick.cpp">
+      <Filter>KamataEngine</Filter>
+    </ClCompile>
+    <ClCompile Include="camera.cpp">
+      <Filter>KamataEngine</Filter>
+    </ClCompile>
+    <ClCompile Include="Vibration.cpp">
+      <Filter>KamataEngine</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="C:\KamataEngine\DirectXGame\audio\Audio.h">
@@ -120,5 +129,8 @@
     <ClInclude Include="GameScene.h" />
     <ClInclude Include="Map.h" />
     <ClInclude Include="MapCollision.h" />
+    <ClInclude Include="StageGimmick.h" />
+    <ClInclude Include="camera.h" />
+    <ClInclude Include="Vibration.h" />
   </ItemGroup>
 </Project>
