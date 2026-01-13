@@ -64,8 +64,7 @@ SceneManager::SceneManager() {
 	gameClearImage_ = Novice::LoadTexture("./Resource/Image/GAMECLEAR.bmp");
 	animFrame_ = 0;
 	animTimer_ = 0.0f;
-	LoadMapCSV("./Map/Map1.csv", gMap);
-
+	LoadMapCSV("./Map/Map4.csv", gMap);
 	gChipSheetHandle = Novice::LoadTexture("./Resource/Image/sand.png");
 	drawnHandle = Novice::LoadTexture("./Resource/Image/Drawn.bmp");
 	//========================================================================================================
@@ -281,7 +280,7 @@ void SceneManager::Update(char* keys, char* preKeys) {
 		}
 		break;
 	case SceneType::PLAY:
-		LoadMapCSV("./Map/Map1.csv", gMap);
+		LoadMapCSV("./Map/Map4.csv", gMap);
 		DrawMapChips();
       
 		player_->Update();
