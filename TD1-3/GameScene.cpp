@@ -1,4 +1,5 @@
 ﻿#include "Player.h"
+#include "MapCollision.h"
 
 
 #include "Map.h"    // DrawMap の定義があるヘッダーファイル
@@ -69,19 +70,12 @@ SceneManager::~SceneManager() {
 }
 static void DrawMapChips(void)
 {
-	if (gChipSheetHandle < 0) {
-		return;
-	}
-
-	for (int y = 0; y < MAP_HEIGHT; y++) {
-		for (int x = 0; x < MAP_WIDTH; x++) {
-
+	// マップ描画ループの中身
+	for (int y = 0; y < MAP_HEIGHT; y++) 
+	{
+		for (int x = 0; x < MAP_WIDTH; x++) 
+		{
 			int id = gMap[y][x];
-
-			// Map1.csv 仕様：-1 は空マス
-			if (id < 0) {
-				continue;
-			}
 
 			// CSV の値 = タイルシートのインデックス
 			int chipIndex = id;
@@ -92,15 +86,95 @@ static void DrawMapChips(void)
 			int dstX = x * TILE_SIZE;
 			int dstY = y * TILE_SIZE;
 
-			Novice::DrawSpriteRect(
-				dstX, dstY,
-				srcX, srcY,
-				CHIP_W, CHIP_H,
-				gChipSheetHandle,
-				1.0f, 1.0f,
-				0.0f,
-				0xFFFFFFFF
-			);
+			// enum を使って分岐
+			switch (id) 
+			{
+
+				// ■ 壁の描画
+			case MAP_WALL:
+				Novice::DrawSpriteRect(
+					dstX, dstY,
+					srcX, srcY,
+					CHIP_W, CHIP_H,
+					gChipSheetHandle,
+					1.0f, 1.0f,
+					0.0f,
+					0xFFFFFFFF
+				);
+				break;
+
+				// ■ ゴールの描画
+			case MAP_GOAL:
+				Novice::DrawBox(
+					dstX, dstY,
+					TILE_SIZE, TILE_SIZE,
+					0.0f,
+					0x00FF00FF, // 緑
+					kFillModeSolid
+				);
+				break;
+
+				// ■ 危険地帯（トゲなど）の描画
+			case MAP_DANGER:
+				Novice::DrawBox(
+					dstX, dstY,
+					TILE_SIZE, TILE_SIZE,
+					0.0f,
+					0xFF0000FF, // 赤
+					kFillModeSolid
+				);
+				break;
+			case MAP_BIRD:
+				Novice::DrawBox(
+					dstX, dstY,
+					TILE_SIZE, TILE_SIZE,
+					0.0f,
+					0xFF0000FF, // 赤
+					kFillModeSolid
+				);
+				break;
+			case MAP_DRONE:
+				Novice::DrawBox(
+					dstX, dstY,
+					TILE_SIZE, TILE_SIZE,
+					0.0f,
+					0xFF0000FF, // 赤
+					kFillModeSolid
+				);
+				break;
+			case MAP_WARPIN:
+				Novice::DrawBox(
+					dstX, dstY,
+					TILE_SIZE, TILE_SIZE,
+					0.0f,
+					0xFF0000FF, // 赤
+					kFillModeSolid
+				);
+				break;
+			case MAP_WARPOUT:
+				Novice::DrawBox(
+					dstX, dstY,
+					TILE_SIZE, TILE_SIZE,
+					0.0f,
+					0xFF0000FF, // 赤
+					kFillModeSolid
+				);
+				break;
+			case MAP_TRAMPOLINE:
+				Novice::DrawBox(
+					dstX, dstY,
+					TILE_SIZE, TILE_SIZE,
+					0.0f,
+					0xFF0000FF, // 赤
+					kFillModeSolid
+				);
+				break;
+				// □ 空きマス (MAP_EMPTY = -1) や未定義の値
+			case MAP_EMPTY:
+			default:
+				// 何も描画しない
+				break;
+			}
 		}
 	}
 }
@@ -202,7 +276,7 @@ void SceneManager::Update(char* keys, char* preKeys) {
 		LoadMapCSV("./Map/Map1.csv", gMap);
 		DrawMapChips();
 
-			player_->Update();
+			player_->Update(gMap);
 
 			if (player_->CheckTileCollisions(gMap)) {
 				StartFade(SceneType::GAMEOVER);

@@ -3,14 +3,14 @@
 #include "Map.h"
 
 // 左方向の当たり判定
-float MapCollisionLeft(float* playerPosX, float* playerPosY, float* radius, int mapDeta[y][x]) {
+float MapCollisionLeft(float* playerPosX, float* playerPosY, float* radius, int mapDeta[kMapHeight][kMapWidth]) {
     int left = static_cast<int>((*playerPosX - *radius - 1) / tileSize);
     int top = static_cast<int>((*playerPosY - *radius) / tileSize);
     int bottom = static_cast<int>(((*playerPosY - *radius) + *radius * 2 - 1) / tileSize);
 
     if (left >= 0 &&
         top >= 0 &&
-        bottom < y &&
+        bottom < kMapHeight &&
         mapDeta[top][left] == MAP_EMPTY &&
         mapDeta[bottom][left] == MAP_EMPTY) {
         return true;
@@ -21,14 +21,14 @@ float MapCollisionLeft(float* playerPosX, float* playerPosY, float* radius, int 
 }
 
 // 右方向の当たり判定
-float MapCollisionRight(float* playerPosX, float* playerPosY, float* radius, int mapDeta[y][x]) {
+float MapCollisionRight(float* playerPosX, float* playerPosY, float* radius, int mapDeta[kMapHeight][kMapWidth]) {
     int right = static_cast<int>(((*playerPosX - *radius) + *radius * 2) / tileSize);
     int top = static_cast<int>((*playerPosY - *radius) / tileSize);
     int bottom = static_cast<int>(((*playerPosY - *radius) + *radius * 2 - 1) / tileSize);
 
-    if (right < x &&
+    if (right < kMapWidth &&
         top >= 0 &&
-        bottom < y &&
+        bottom < kMapHeight &&
         mapDeta[top][right] == MAP_EMPTY &&
         mapDeta[bottom][right] == MAP_EMPTY) {
         return true;
@@ -39,14 +39,14 @@ float MapCollisionRight(float* playerPosX, float* playerPosY, float* radius, int
 }
 
 // 上方向の当たり判定
-float MapCollisionTop(float* playerPosX, float* playerPosY, float* radius, int mapDeta[y][x]) {
+float MapCollisionTop(float* playerPosX, float* playerPosY, float* radius, int mapDeta[kMapHeight][kMapWidth]) {
     int left = static_cast<int>((*playerPosX - *radius) / tileSize);
     int right = static_cast<int>(((*playerPosX - *radius) + *radius * 2 - 1) / tileSize);
     int top = static_cast<int>((*playerPosY - *radius) / tileSize);
 
     if (top >= 0 &&
         left >= 0 &&
-        right < x &&
+        right < kMapWidth &&
         mapDeta[top][left] == MAP_EMPTY &&
         mapDeta[top][right] == MAP_EMPTY) {
         return true;
@@ -57,14 +57,14 @@ float MapCollisionTop(float* playerPosX, float* playerPosY, float* radius, int m
 }
 
 // 下方向の当たり判定
-float MapCollisionBottom(float* playerPosX, float* playerPosY, float* radius, int mapDeta[y][x]) {
+float MapCollisionBottom(float* playerPosX, float* playerPosY, float* radius, int mapDeta[kMapHeight][kMapWidth]) {
     int left = static_cast<int>((*playerPosX - *radius) / tileSize);
     int right = static_cast<int>(((*playerPosX - *radius) + *radius * 2 - 1) / tileSize);
     int bottom = static_cast<int>(((*playerPosY - *radius) + *radius * 2 + 1) / tileSize);
 
-    if (bottom < y &&
+    if (bottom < kMapHeight &&
         left >= 0 &&
-        right < x &&
+        right < kMapWidth &&
         mapDeta[bottom][left] == MAP_EMPTY &&
         mapDeta[bottom][right] == MAP_EMPTY) {
         return true;
