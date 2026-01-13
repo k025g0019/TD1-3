@@ -8,8 +8,15 @@
 int kWindowWidth = 1280;
 int kWindowHeight = 720;
 static int gChipSheetHandle = -1;
+static int drawnHandle = -1;
 int gMap[MAP_HEIGHT][MAP_WIDTH];
 // SceneManager のコンストラクタ
+enum MapNumber
+{
+	air=-1,
+	sand,
+	drawn,
+};
 SceneManager::SceneManager() {
 
 	// --- 初期シーン設定 ---
@@ -57,8 +64,9 @@ SceneManager::SceneManager() {
 	animFrame_ = 0;
 	animTimer_ = 0.0f;
 	LoadMapCSV("./Map/Map1.csv", gMap);
-	
+
 	gChipSheetHandle = Novice::LoadTexture("./Resource/Image/sand.png");
+	drawnHandle = Novice::LoadTexture("./Resource/Image/Drawn.bmp");
 	//========================================================================================================
 }
 
@@ -79,7 +87,7 @@ static void DrawMapChips(void)
 			int id = gMap[y][x];
 
 			// Map1.csv 仕様：-1 は空マス
-			if (id < 0) {
+			if (id < 1) {
 				continue;
 			}
 
@@ -202,13 +210,13 @@ void SceneManager::Update(char* keys, char* preKeys) {
 		LoadMapCSV("./Map/Map1.csv", gMap);
 		DrawMapChips();
 
-			player_->Update();
+		player_->Update();
 
-			if (player_->CheckTileCollisions(gMap)) {
-				StartFade(SceneType::GAMEOVER);
-			}
+		if (player_->CheckTileCollisions(gMap)) {
+			StartFade(SceneType::GAMEOVER);
+		}
 
-			
+
 		// オブジェクトの振動・カメラの更新
 
 
@@ -339,7 +347,7 @@ void SceneManager::Draw() {
 	Novice::GetMousePosition(&mx, &my);
 
 
-	
+
 
 	//===========================
 	// ▼ シーン別描画処理
