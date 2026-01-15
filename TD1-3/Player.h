@@ -1,6 +1,8 @@
 ﻿#pragma once
 #include "Vector.h"
-#include"Map.h"
+#include "Map.h"
+#include "HitStop.h"
+#include "Vibration.h"
 
 enum WarpState 
 {
@@ -8,7 +10,6 @@ enum WarpState
 	WARP_IN,
 	WARP_OUT
 };
-
 class Player {
 public:
 	struct PlayerStatus {
@@ -16,9 +17,12 @@ public:
 		Vector2 vel;
 		float radius = 25.0f;
 	};
-
+	Vibration* vibration; // 破壊時振動
 	PlayerStatus status;
 	int Accelerated = 0;
+	float sinParam[2] = { 0.5f, 0.5f }; // 待機中上下揺れ制御用パラメータ
+	int times = 0; // 経過フレーム数
+	void DoHitStop(int frames);
 
 	bool isWarping_ = false;   // ワープ中か？
 	Vector2 warpOffset_ = { 0, 0 }; // ワープ先との距離

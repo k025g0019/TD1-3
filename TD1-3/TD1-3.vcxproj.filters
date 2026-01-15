@@ -132,5 +132,6 @@
     <ClInclude Include="StageGimmick.h" />
     <ClInclude Include="camera.h" />
     <ClInclude Include="Vibration.h" />
+    <ClInclude Include="HitStop.h" />
   </ItemGroup>
 </Project>
