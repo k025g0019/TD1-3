@@ -143,7 +143,7 @@ void Player::Update(int map[MAP_HEIGHT][MAP_WIDTH]) {
 	// ★ギミックとの判定（効果発動）
 	CheckGimmicks(map);
 }
-  
+
 
 void Player::CheckGimmicks(int map[MAP_HEIGHT][MAP_WIDTH])
 {
@@ -162,7 +162,7 @@ void Player::CheckGimmicks(int map[MAP_HEIGHT][MAP_WIDTH])
         // ▼ 危険地帯
     case MAP_DANGER:
         // ミス処理へ（初期位置に戻すなど）
-        // Initialize(); 
+        // Initialize();
         break;
 
         // ▼ ゴール
@@ -178,7 +178,7 @@ void Player::CheckGimmicks(int map[MAP_HEIGHT][MAP_WIDTH])
 
         // ▼ トランポリン
     case MAP_TRAMPOLINE:
-        status.vel.y = -10.0f; // 強制的に上へ跳ねさせる
+        status.vel.y = -200.0f; // 強制的に上へ跳ねさせる
         break;
 
         // ▼ ワープ (In -> Out)
@@ -211,10 +211,11 @@ void Player::CheckGimmicks(int map[MAP_HEIGHT][MAP_WIDTH])
 
 
 void Player::Draw() {
+    Camera& cam = Camera::Instance();
 	// プレイヤーを四角形で描画
 	Novice::DrawEllipse(
-		static_cast<int>(status.pos.x),
-		static_cast<int>(status.pos.y),
+		static_cast<int>(status.pos.x+cam.x),
+		static_cast<int>(status.pos.y + cam.y),
 		static_cast<int>(status.radius),
 		static_cast<int>(status.radius),
 		0.0f,

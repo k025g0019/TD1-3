@@ -6,7 +6,7 @@
 void Camera::Follow(float playerX, float playerY) {
     (void)playerY;
     // 目標カメラ位置（player を中心付近に）
-    float targetX = (1280 / 2) + playerX;
+    float targetX = (1280 / 2) - playerX;
     x += (targetX - x);
 
     // 画面の横は固定
