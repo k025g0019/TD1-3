@@ -1,6 +1,6 @@
 ﻿#include "Player.h"
 #include "MapCollision.h"
-
+#include "camera.h"
 
 #include "Map.h"    // DrawMap の定義があるヘッダーファイル
 
@@ -77,6 +77,7 @@ SceneManager::~SceneManager() {
 }
 static void DrawMapChips(void)
 {
+	Camera& cam = Camera::Instance();
 	// マップ描画ループの中身
 	for (int y = 0; y < MAP_HEIGHT; y++) 
 	{
@@ -90,8 +91,8 @@ static void DrawMapChips(void)
 			int srcX = (chipIndex % SHEET_COLS) * CHIP_W;
 			int srcY = (chipIndex / SHEET_COLS) * CHIP_H;
 
-			int dstX = x * TILE_SIZE;
-			int dstY = y * TILE_SIZE;
+			int dstX = x * TILE_SIZE + (int)cam.x;
+			int dstY = y * TILE_SIZE + (int)cam.y;
 
 			// enum を使って分岐
 			switch (id) 

@@ -5,19 +5,19 @@ enum MapType {
 
 	MAP_WALL = 0,//壁いたってシンプル
 
-	MAP_GOAL = 2,//ゴール地点これまたシンプル
+	MAP_GOAL = -2,//ゴール地点これまたシンプル
 
-	MAP_DANGER = 3,//危険地帯触れたらアウトのデンジャー
+	MAP_DANGER = -3,//危険地帯触れたらアウトのデンジャー
 
-	MAP_BIRD = 4,
+	MAP_BIRD = -4,
 
-	MAP_DRONE = 5,
+	MAP_DRONE = -5,
 
-	MAP_WARPIN = 6,
+	MAP_WARPIN = -6,
 
-	MAP_WARPOUT = 7,
+	MAP_WARPOUT = -7,
 
-	MAP_TRAMPOLINE = 8
+	MAP_TRAMPOLINE = -8
 };
 
 const int kMapWidth = MAP_WIDTH;
