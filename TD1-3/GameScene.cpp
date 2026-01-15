@@ -285,10 +285,10 @@ void SceneManager::Update(char* keys, char* preKeys) {
       
 		player_->Update(gMap);
 
-		if (player_->CheckTileCollisions(gMap)) {
+		/*if (player_->CheckTileCollisions(gMap)) {
 			StartFade(SceneType::GAMEOVER);
 		}
-		
+		*/
 
 
 		// オブジェクトの振動・カメラの更新
