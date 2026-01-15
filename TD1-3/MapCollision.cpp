@@ -11,8 +11,8 @@ float MapCollisionLeft(float* playerPosX, float* playerPosY, float* radius, int 
     if (left >= 0 &&
         top >= 0 &&
         bottom < kMapHeight &&
-        mapDeta[top][left] <=1 &&
-        mapDeta[bottom][left] <=1) {
+        mapDeta[top][left] <0 &&
+        mapDeta[bottom][left] <0) {
         return true;
     }
     else {
@@ -30,8 +30,8 @@ float MapCollisionRight(float* playerPosX, float* playerPosY, float* radius, int
         top >= 0 &&
 
         bottom < kMapHeight&&
-        mapDeta[top][right] <=1 &&
-        mapDeta[bottom][right] <=1) {
+        mapDeta[top][right] < 0 &&
+        mapDeta[bottom][right] < 0) {
         return true;
     }
     else {
@@ -49,8 +49,8 @@ float MapCollisionTop(float* playerPosX, float* playerPosY, float* radius, int m
         left >= 0 &&
 
         right < MAP_WIDTH&&
-        mapDeta[top][left] <=1 &&
-        mapDeta[top][right] <=1) {
+        mapDeta[top][left] < 0 &&
+        mapDeta[top][right] < 0) {
 
         return true;
     }
@@ -69,8 +69,8 @@ float MapCollisionBottom(float* playerPosX, float* playerPosY, float* radius, in
         left >= 0 &&
 
         right < MAP_WIDTH&&
-        mapDeta[bottom][left] <=1 &&
-        mapDeta[bottom][right] <=1) {
+        mapDeta[bottom][left] < 0 &&
+        mapDeta[bottom][right] < 0) {
 
         return true;
     }
