@@ -2,19 +2,21 @@
 #include "MapCollision.h"
 #include "camera.h"
 
-#include "Map.h"    // DrawMap の定義があるヘッダーファイル
 
 #include "GameScene.h"
 #include <Novice.h>
 int kWindowWidth = 1280;
 int kWindowHeight = 720;
-static int gChipSheetHandle = -1;
-static int drawnHandle = -1;
-int gMap[MAP_HEIGHT][MAP_WIDTH];
+// SceneManager のデストラクタ
+SceneManager::~SceneManager() {
+	delete player_;
+
+}
+
 // SceneManager のコンストラクタ
 enum MapNumber
 {
-	air=-1,
+	air = -1,
 	sand,
 	drawn,
 };
@@ -64,128 +66,12 @@ SceneManager::SceneManager() {
 	gameClearImage_ = Novice::LoadTexture("./Resource/Image/GAMECLEAR.bmp");
 	animFrame_ = 0;
 	animTimer_ = 0.0f;
-	LoadMapCSV("./Map/Map4.csv", gMap);
-	gChipSheetHandle = Novice::LoadTexture("./Resource/Image/sand.png");
-	drawnHandle = Novice::LoadTexture("./Resource/Image/Drawn.bmp");
+
+
 	//========================================================================================================
 }
 
-// SceneManager のデストラクタ
-SceneManager::~SceneManager() {
-	delete player_;
 
-}
-static void DrawMapChips(void)
-{
-	Camera& cam = Camera::Instance();
-	// マップ描画ループの中身
-	for (int y = 0; y < MAP_HEIGHT; y++) 
-	{
-		for (int x = 0; x < MAP_WIDTH; x++) 
-		{
-			int id = gMap[y][x];
-
-			// CSV の値 = タイルシートのインデックス
-			int chipIndex = id;
-
-			int srcX = (chipIndex % SHEET_COLS) * CHIP_W;
-			int srcY = (chipIndex / SHEET_COLS) * CHIP_H;
-
-			int dstX = x * TILE_SIZE + (int)cam.x;
-			int dstY = y * TILE_SIZE + (int)cam.y;
-
-			// enum を使って分岐
-			switch (id) 
-			{
-
-				// ■ 壁の描画
-			case MAP_WALL:
-				Novice::DrawSpriteRect(
-					dstX, dstY,
-					srcX, srcY,
-					CHIP_W, CHIP_H,
-					gChipSheetHandle,
-					1.0f, 1.0f,
-					0.0f,
-					0xFFFFFFFF
-				);
-				break;
-
-				// ■ ゴールの描画
-			case MAP_GOAL:
-				Novice::DrawBox(
-					dstX, dstY,
-					TILE_SIZE, TILE_SIZE,
-					0.0f,
-					0x00FF00FF, // 緑
-					kFillModeSolid
-				);
-				break;
-
-				// ■ 危険地帯（トゲなど）の描画
-			case MAP_DANGER:
-				Novice::DrawBox(
-					dstX, dstY,
-					TILE_SIZE, TILE_SIZE,
-					0.0f,
-					0xFF0000FF, // 赤
-					kFillModeSolid
-				);
-				break;
-			case MAP_BIRD:
-				Novice::DrawBox(
-					dstX, dstY,
-					TILE_SIZE, TILE_SIZE,
-					0.0f,
-					0xFF0000FF, // 赤
-					kFillModeSolid
-				);
-				break;
-			case MAP_DRONE:
-				Novice::DrawBox(
-					dstX, dstY,
-					TILE_SIZE, TILE_SIZE,
-					0.0f,
-					0xFF0000FF, // 赤
-					kFillModeSolid
-				);
-				break;
-			case MAP_WARPIN:
-				Novice::DrawBox(
-					dstX, dstY,
-					TILE_SIZE, TILE_SIZE,
-					0.0f,
-					0xFF0000FF, // 赤
-					kFillModeSolid
-				);
-				break;
-			case MAP_WARPOUT:
-				Novice::DrawBox(
-					dstX, dstY,
-					TILE_SIZE, TILE_SIZE,
-					0.0f,
-					0xFF0000FF, // 赤
-					kFillModeSolid
-				);
-				break;
-			case MAP_TRAMPOLINE:
-				Novice::DrawBox(
-					dstX, dstY,
-					TILE_SIZE, TILE_SIZE,
-					0.0f,
-					0xFF0000FF, // 赤
-					kFillModeSolid
-				);
-				break;
-				// □ 空きマス (MAP_EMPTY = -1) や未定義の値
-			case MAP_EMPTY:
-			default:
-				// 何も描画しない
-				break;
-			}
-		}
-	}
-}
 
 // ------------------------------------------------------------
 // ▼ 更新処理
@@ -251,7 +137,7 @@ void SceneManager::Update(char* keys, char* preKeys) {
 
 
 		player_->Initialize();
-
+		itializeMap();
 
 		//マウスの左クリックで次のシーンへ
 		if (Novice::IsPressMouse(0) ||
@@ -273,6 +159,7 @@ void SceneManager::Update(char* keys, char* preKeys) {
 		break;
 
 	case SceneType::STAGESELECT:
+		LoadMapCSV("./Map/Map4.csv", gMap);
 		if (Novice::IsPressMouse(0) ||
 			Novice::IsTriggerButton(0, kPadButton10))
 		{
@@ -281,14 +168,13 @@ void SceneManager::Update(char* keys, char* preKeys) {
 		}
 		break;
 	case SceneType::PLAY:
-		LoadMapCSV("./Map/Map4.csv", gMap);
-		DrawMapChips();
-      
-		player_->Update(gMap);
+		HitStop::Instance().Update();
 
-		if (player_->CheckTileCollisions(gMap)) {
-			StartFade(SceneType::GAMEOVER);
-		}
+		DrawMapChips();
+
+		player_->Update();
+
+
 		
 
 
