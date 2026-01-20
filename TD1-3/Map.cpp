@@ -8,6 +8,7 @@ int Number=0;
 Entity gEntities[MAX_ENTITIES];
 int gEntityCount = 0;
 int gEnemyTex = -1;
+int gPlayerTex = -1;
 // ============================
 // グローバル
 // ============================
@@ -30,7 +31,8 @@ void InitializeMap()
 {
 	gChipSheetHandle =
 		Novice::LoadTexture("./Resource/Image/Inca_front_by_Kronbits-extended.png");
-
+	gPlayerTex = Novice::LoadTexture("./Resource/Image/pDrawn.bmp");
+	gEnemyTex = Novice::LoadTexture("./Resource/Image/Drawn.bmp");
 	for (int y = 0; y < MAP_HEIGHT; y++)
 		for (int x = 0; x < MAP_WIDTH; x++)
 		{
@@ -149,8 +151,8 @@ int LoadMapLDtk(const char* filePath)
 		// 見た目（AutoLayer / Tiles）
 		// ============================
 		// ============================
-// 見た目タイル（Tiles / AutoLayer）
-// ============================
+　　// 見た目タイル（Tiles / AutoLayer）
+　　// ============================
 		cJSON* tiles = cJSON_GetObjectItem(layer, "gridTiles");
 		if (!tiles)
 		{
@@ -213,32 +215,36 @@ static void DrawTile(int x, int y, int tileIndex)
 		0xFFFFFFFF
 	);
 }
-
-// ============================// マップ描画// ============================
+// ============================
+// マップ描画
+// ============================
 void DrawMapChips(void)
 {
 	Camera& cam = Camera::Instance();
 	for (int y = 0; y < MAP_HEIGHT; y++) 
 	{		
 		for (int x = 0; x < MAP_WIDTH; x++)
-		{			
-			int tile = gVisualMap[y][x];			
-			if (tile <= 0) continue;			
+		{
+			int tile = gVisualMap[y][x];
+
+			if (tile <= 0) continue;
+
 			int dx = x * TILE_SIZE + (int)cam.x;
-			int dy = y * TILE_SIZE + (int)cam.y;			
-			if (gVisualMap[y][x] >= 0)			
-			{		
-				/*Novice::DrawBox(		
-				dx, dy,	
-				TILE_SIZE, TILE_SIZE,		
-				0.0f,					
-				0xFF0000FF,	
-				kFillModeWireFrame
-				);*/			
+			int dy = y * TILE_SIZE + (int)cam.y;
+			if (gVisualMap[y][x] >= 0)
+			{
+				/*Novice::DrawBox(
+					dx, dy,
+					TILE_SIZE, TILE_SIZE,
+					0.0f,
+					0xFF0000FF,
+					kFillModeWireFrame
+				);*/
 				DrawTile(dx, dy, tile);
-			}				
+			}
 		}
 	}
+
 }
 
 void DrawEntities()
@@ -256,7 +262,7 @@ void DrawEntities()
 		{
 			tex = -1;
 		}
-		else if (strcmp(gEntities[i].name, "Enemy") == 0)
+		else if (strcmp(gEntities[i].name, "Entity") == 0)
 		{
 			tex = -1;
 		}
