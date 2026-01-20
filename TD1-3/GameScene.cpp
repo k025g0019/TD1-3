@@ -21,6 +21,11 @@ const int kGapY = 30;       // 縦の間隔
 const int kStartX = 110;    // 表示開始X座標
 const int kStartY = 150;    // 表示開始Y座標
 
+// ★マウス移動判定
+static int preMx = 0;
+static int preMy = 0;
+bool isMouseMoved = false;
+
 // クリア情報を保存する配列
 static bool gStageClearFlags[kMaxStages] = { false };
 
@@ -140,7 +145,7 @@ void DrawStageMap(void)
 // ▼ 更新処理
 // ------------------------------------------------------------
 void SceneManager::Update(char* keys, char* preKeys) {
-  
+
 	int mx, my;
 	Novice::GetMousePosition(&mx, &my);
 
@@ -193,211 +198,210 @@ void SceneManager::Update(char* keys, char* preKeys) {
 	//===========================
 	// ▼ シーン別更新処理
 	//===========================
-    switch (currentScene_) {
+	switch (currentScene_) {
 
-    case SceneType::TITLE:
-        //最初期化
-
-
-        player_->Initialize();
-        InitializeMap();
-
-        //マウスの左クリックで次のシーンへ
-        if (Novice::IsPressMouse(0) ||
-            Novice::IsTriggerButton(0, kPadButton10))
-        {
-            previousScene_ = SceneType::TITLE;
-            StartFade(SceneType::STAGESELECT);
-        }
-
-        //タイトルから一気にゲームシーンへ
-        if (keys[DIK_P] && !preKeys[DIK_P] ||
-            Novice::IsTriggerButton(0, kPadButton4)
-            ) {
-
-            previousScene_ = SceneType::TITLE;
-            StartFade(SceneType::STAGESELECT);
-        }
-
-        break;
-
-    case SceneType::STAGESELECT:
-        LoadMapLDtk("./Map/Map1.ldtk");
-        if (Novice::IsPressMouse(0) ||
-            Novice::IsTriggerButton(0, kPadButton10))
-        {
-            previousScene_ = SceneType::STAGESELECT;
-            StartFade(SceneType::PLAY);
-        }
-        break;
-    case SceneType::PLAY:
-
-        HitStop::Instance().Update();
+	case SceneType::TITLE:
+		//最初期化
 
 
+		player_->Initialize();
+		InitializeMap();
 
-        player_->Update();
+		//マウスの左クリックで次のシーンへ
+		if (Novice::IsPressMouse(0) ||
+			Novice::IsTriggerButton(0, kPadButton10))
+		{
+			previousScene_ = SceneType::TITLE;
+			StartFade(SceneType::STAGESELECT);
+		}
 
-        /*if (player_->CheckTileCollisions(gMap)) {
-            StartFade(SceneType::GAMEOVER);
-        }*/
+		//タイトルから一気にゲームシーンへ
+		if (keys[DIK_P] && !preKeys[DIK_P] ||
+			Novice::IsTriggerButton(0, kPadButton4)
+			) {
 
+			previousScene_ = SceneType::TITLE;
+			StartFade(SceneType::STAGESELECT);
+		}
 
-        // オブジェクトの振動・カメラの更新
+		break;
+
+	case SceneType::STAGESELECT:
+		LoadMapLDtk("./Map/Map1.ldtk");
+		if (Novice::IsPressMouse(0) ||
+			Novice::IsTriggerButton(0, kPadButton10))
+		{
+			previousScene_ = SceneType::STAGESELECT;
+			StartFade(SceneType::PLAY);
+		}
+		break;
+	case SceneType::PLAY:
+
+		HitStop::Instance().Update();
 
 
 
-        // --- シーン遷移の条件例（キー操作） ---
-        if (keys[DIK_2] && !preKeys[DIK_2]) {
-            StartFade(SceneType::GAMEOVER);
-        }
-        if (keys[DIK_1] && !preKeys[DIK_1]) {
-            StartFade(SceneType::CLEAR);
-        }
+		player_->Update();
 
-        // --- シーン遷移の条件例---
+		/*if (player_->CheckTileCollisions(gMap)) {
+			StartFade(SceneType::GAMEOVER);
+		}*/
 
-        //ゲームオーバー
 
-        //クリア
+		// オブジェクトの振動・カメラの更新
 
 
 
-        // --- PAUSE 画面への移行 ---
-        if (keys[DIK_P] && !preKeys[DIK_P] || Novice::IsTriggerButton(0, kPadButton4)) {
-            // フェードを挟まずに即時切り替え
-            currentScene_ = SceneType::PAUSE;
-        }
-        break;
+		// --- シーン遷移の条件例（キー操作） ---
+		if (keys[DIK_2] && !preKeys[DIK_2]) {
+			StartFade(SceneType::GAMEOVER);
+		}
+		if (keys[DIK_1] && !preKeys[DIK_1]) {
+			StartFade(SceneType::CLEAR);
+		}
 
-    case SceneType::CLEAR:
-        if (Novice::IsPressMouse(0) || Novice::IsTriggerButton(0, kPadButton10)) {
-            StartFade(SceneType::TITLE);
-            animTimer_ = 0;
-            animFrame_ = 0;
-        }
+		// --- シーン遷移の条件例---
 
-        animTimer_++;
-        if (animTimer_ >= 15) {   // 切り替え速度
-            animTimer_ = 0;
-            animFrame_++;
-            if (animFrame_ >= 4) {
-                animFrame_ = 0;
-            }
-        }
+		//ゲームオーバー
+
+		//クリア
 
 
-        break;
 
-    case SceneType::GAMEOVER:
+		// --- PAUSE 画面への移行 ---
+		if (keys[DIK_P] && !preKeys[DIK_P] || Novice::IsTriggerButton(0, kPadButton4)) {
+			// フェードを挟まずに即時切り替え
+			currentScene_ = SceneType::PAUSE;
+		}
+		break;
 
-        animTimer_++;
-        if (animTimer_ >= 10) {   // 切り替え速度
-            animTimer_ = 0;
-            animFrame_++;
-            if (animFrame_ >= 10) {
-                animFrame_ = 9;
-            }
-        }
+	case SceneType::CLEAR:
+		if (Novice::IsPressMouse(0) || Novice::IsTriggerButton(0, kPadButton10)) {
+			StartFade(SceneType::TITLE);
+			animTimer_ = 0;
+			animFrame_ = 0;
+		}
 
-        // 画面クリックでタイトルへ戻る
-        if (Novice::IsPressMouse(0) || Novice::IsTriggerButton(0, kPadButton10)) {
-            StartFade(SceneType::TITLE);
-            animTimer_ = 0;
-            animFrame_ = 0;
-
-        }
-        break;
-
-    case SceneType::PAUSE:
-
-        if (!Novice::IsTriggerMouse(0)) return;
-
-        if (Novice::IsTriggerButton(0, kPadButton0)) pauseCursor_--;
-        if (Novice::IsTriggerButton(0, kPadButton1)) pauseCursor_++;
-
-        pauseCursor_ = (pauseCursor_ + 3) % 3;
-
-        if (Novice::IsTriggerButton(0, kPadButton10)) {
-            if (pauseCursor_ == 0) currentScene_ = SceneType::PLAY;
-            if (pauseCursor_ == 1) StartFade(SceneType::TITLE);
-            if (pauseCursor_ == 2) {
-                previousScene_ = SceneType::PAUSE;
-                StartFade(SceneType::TITLE);
-            }
-        }
+		animTimer_++;
+		if (animTimer_ >= 15) {   // 切り替え速度
+			animTimer_ = 0;
+			animFrame_++;
+			if (animFrame_ >= 4) {
+				animFrame_ = 0;
+			}
+		}
 
 
-        { // スコープを明示
-            // --- ボタンクリック判定 ---
-            if (Novice::IsTriggerMouse(0)) {
-                if (pauseButtons_[0].IsHovered(mx, my)) {
-                    currentScene_ = SceneType::PLAY;  // Resume: フェードなしで即時再開
-                }
-                if (pauseButtons_[1].IsHovered(mx, my)) {
-                    StartFade(SceneType::TITLE);      // Retry: TITLEへ
-                }
+		break;
 
-            }
+	case SceneType::GAMEOVER:
 
-            Novice::GetMousePosition(&mx, &my);
+		animTimer_++;
+		if (animTimer_ >= 10) {   // 切り替え速度
+			animTimer_ = 0;
+			animFrame_++;
+			if (animFrame_ >= 10) {
+				animFrame_ = 9;
+			}
+		}
 
-            // フェード処理
-            if (isFading_)
-            {
-                if (fadeOut_)
-                {
-                    fadeAlpha_ += kFadeSpeed_;
-                    if (fadeAlpha_ >= 255)
-                    {
-                        fadeAlpha_ = 255;
-                        currentScene_ = nextScene_;
-                        fadeOut_ = false;
-                    }
-                }
-                else
-                {
-                    fadeAlpha_ -= kFadeSpeed_;
-                    if (fadeAlpha_ <= 0)
-                    {
-                        fadeAlpha_ = 0;
-                        isFading_ = false;
-                    }
-                }
-                return;
-            }
-        }
-    }
-    switch (currentScene_) 
-    {
-    case SceneType::TITLE:
-        //最初期化
+		// 画面クリックでタイトルへ戻る
+		if (Novice::IsPressMouse(0) || Novice::IsTriggerButton(0, kPadButton10)) {
+			StartFade(SceneType::TITLE);
+			animTimer_ = 0;
+			animFrame_ = 0;
 
-	// ★マウス移動判定
-	static int preMx = 0;
-	static int preMy = 0;
-	bool isMouseMoved = false;
+		}
+		break;
 
-	if (mx != preMx || my != preMy)
-	{
-		isMouseMoved = true;
+	case SceneType::PAUSE:
+
+		if (!Novice::IsTriggerMouse(0)) return;
+
+		if (Novice::IsTriggerButton(0, kPadButton0)) pauseCursor_--;
+		if (Novice::IsTriggerButton(0, kPadButton1)) pauseCursor_++;
+
+		pauseCursor_ = (pauseCursor_ + 3) % 3;
+
+		if (Novice::IsTriggerButton(0, kPadButton10)) {
+			if (pauseCursor_ == 0) currentScene_ = SceneType::PLAY;
+			if (pauseCursor_ == 1) StartFade(SceneType::TITLE);
+			if (pauseCursor_ == 2) {
+				previousScene_ = SceneType::PAUSE;
+				StartFade(SceneType::TITLE);
+			}
+		}
+
+
+		{ // スコープを明示
+			// --- ボタンクリック判定 ---
+			if (Novice::IsTriggerMouse(0)) {
+				if (pauseButtons_[0].IsHovered(mx, my)) {
+					currentScene_ = SceneType::PLAY;  // Resume: フェードなしで即時再開
+				}
+				if (pauseButtons_[1].IsHovered(mx, my)) {
+					StartFade(SceneType::TITLE);      // Retry: TITLEへ
+				}
+
+			}
+
+			Novice::GetMousePosition(&mx, &my);
+
+			// フェード処理
+			if (isFading_)
+			{
+				if (fadeOut_)
+				{
+					fadeAlpha_ += kFadeSpeed_;
+					if (fadeAlpha_ >= 255)
+					{
+						fadeAlpha_ = 255;
+						currentScene_ = nextScene_;
+						fadeOut_ = false;
+					}
+				}
+				else
+				{
+					fadeAlpha_ -= kFadeSpeed_;
+					if (fadeAlpha_ <= 0)
+					{
+						fadeAlpha_ = 0;
+						isFading_ = false;
+					}
+				}
+				return;
+			}
+		}
 	}
-	preMx = mx;
-	preMy = my;
+	switch (currentScene_)
+	{
+	case SceneType::TITLE:
+		//最初期化
 
-        //マウスの左クリックで次のシーンへ
-        if (Novice::IsPressMouse(0) ||
-            Novice::IsTriggerButton(0, kPadButton10))
-        {
-            previousScene_ = SceneType::TITLE;
-            StartFade(SceneType::STAGESELECT);
-        }
-        // ショートカット
-        if ((keys[DIK_P] && !preKeys[DIK_P]) || Novice::IsTriggerButton(0, kPadButton4)) 
-        {
-            previousScene_ = SceneType::TITLE;
-            StartFade(SceneType::STAGESELECT);
-        }
+		preMx = 0;
+		preMy = 0;
+		isMouseMoved = false;
+
+		if (mx != preMx || my != preMy)
+		{
+			isMouseMoved = true;
+		}
+		preMx = mx;
+		preMy = my;
+
+		//マウスの左クリックで次のシーンへ
+		if (Novice::IsPressMouse(0) ||
+			Novice::IsTriggerButton(0, kPadButton10))
+		{
+			previousScene_ = SceneType::TITLE;
+			StartFade(SceneType::STAGESELECT);
+		}
+		// ショートカット
+		if ((keys[DIK_P] && !preKeys[DIK_P]) || Novice::IsTriggerButton(0, kPadButton4))
+		{
+			previousScene_ = SceneType::TITLE;
+			StartFade(SceneType::STAGESELECT);
+		}
 
 		// マウスの左クリックで次のシーンへ
 		if (Novice::IsPressMouse(0) || Novice::IsTriggerButton(0, kPadButton10))
@@ -689,7 +693,7 @@ void SceneManager::Draw()
 				Novice::ScreenPrintf(x + 20, y + 40, "STAGE %d", stageIdx + 1);
 
 				// クリア済みテキストの表示
-				if (isCleared) 
+				if (isCleared)
 				{
 					// 右上あたりに「CLEAR!」と表示
 					Novice::ScreenPrintf(x + 100, y + 10, "★CLEAR!");
@@ -723,16 +727,16 @@ void SceneManager::Draw()
 		player_->Draw();
 		Novice::DrawBox(0, 0, kWindowWidth, kWindowHeight, 0.0f, 0x00000088, kFillModeSolid);
 
-		for (int i = 0; i < kPauseButtonCount_; i++) 
+		for (int i = 0; i < kPauseButtonCount_; i++)
 		{
 			const Button& button = pauseButtons_[i];
 
 			bool mouseHover = button.IsHovered(mx, my);
 			bool padHover = false;
 
-			if (Novice::GetNumberOfJoysticks() >= 1) 
+			if (Novice::GetNumberOfJoysticks() >= 1)
 			{
-				if (i == pauseCursor_) 
+				if (i == pauseCursor_)
 				{
 					padHover = true;
 				}
@@ -745,11 +749,11 @@ void SceneManager::Draw()
 			}
 
 			unsigned int color;
-			if (hover) 
+			if (hover)
 			{
 				color = button.hoverColor;
 			}
-			else 
+			else
 			{
 				color = button.normalColor;
 			}
@@ -757,15 +761,15 @@ void SceneManager::Draw()
 			int UIframeH = 60;
 
 			int srcX = 0;
-			if (i == 0) 
+			if (i == 0)
 			{
 				srcX = 0;
 			}
-			else if (i == 1) 
+			else if (i == 1)
 			{
 				srcX = 300;
 			}
-			else 
+			else
 			{
 				srcX = 600;
 			}
@@ -775,7 +779,7 @@ void SceneManager::Draw()
 		break;
 	}
 
-	if (fadeAlpha_ > 0) 
+	if (fadeAlpha_ > 0)
 	{
 		unsigned int color = 0x00000000 | fadeAlpha_;
 		Novice::DrawBox(0, 0, kWindowWidth, kWindowHeight, 0.0f, color, kFillModeSolid);
