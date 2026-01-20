@@ -12,9 +12,10 @@ enum WarpState
 };
 class Player {
 public:
-	struct PlayerStatus {
-		Vector2 pos;
-		Vector2 vel;
+	struct PlayerStatus 
+	{
+		Vector2 pos = { 0.0f,0.0f };
+		Vector2 vel = {0.0f,0.0f};
 		float radius = 25.0f;
 	};
 	Vibration* vibration; // 破壊時振動
@@ -24,28 +25,23 @@ public:
 	int times = 0; // 経過フレーム数
 	void DoHitStop(int frames);
 
-	bool isWarping_ = false;   // ワープ中か？
-	Vector2 warpOffset_ = { 0, 0 }; // ワープ先との距離
 	bool justWarped_ = false;
 	Vector2 prevPos_ = { 0, 0 };
 
-	WarpState warpState_ = WARP_NONE; // 現在の状態
-	float warpTimer_ = 0.0f;          // アニメーション用タイマー
-	Vector2 scale_ = { 1.0f, 1.0f };  // 見た目の倍率（1.0が通常）
+	// 効果音ハンドル
+	int playerHitMusic = -1;
 
-	Vector2 warpStartPos_ = { 0, 0 }; // 吸い込まれる場所の中心
-	Vector2 warpDestPos_ = { 0, 0 }; // 出てくる場所の中心
+	Player();
+	~Player();
 
     // ギミック判定用の関数を追加
-    void CheckGimmicks(int map[MAP_HEIGHT][MAP_WIDTH]);
-
-	void UpdateWarpAnimation();
+    void CheckGimmicks();
 
     void Initialize();
-    void Update(int map[MAP_HEIGHT][MAP_WIDTH]);
+    void Update();
     void Draw();
 
-    bool CheckTileCollisions(int map[45][180]);
+    bool CheckTileCollisions();
 
 private:
 	bool hitWall_ = false;

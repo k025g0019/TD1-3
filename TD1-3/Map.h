@@ -3,7 +3,7 @@
 #include "camera.h"
 #define MAP_HEIGHT 45
 #define MAP_WIDTH  180
-#define LINE_BUF_SIZE 512
+#define LINE_BUF_SIZE 2048
 
 #define CHIP_W 16
 #define CHIP_H 16
@@ -19,17 +19,17 @@ enum MapType {
 
 	MAP_WALL = 0,//壁いたってシンプル
 
-	MAP_GOAL = -2,//ゴール地点これまたシンプル
+	MAP_GOAL = 1,//ゴール地点これまたシンプル
 
-	MAP_DANGER = -3,//危険地帯触れたらアウトのデンジャー
+	MAP_DANGER=2,//危険地帯触れたらアウトのデンジャー
 
-	MAP_BIRD = -4,
+	MAP_BIRD=3,
 
-	MAP_DRONE = -5,
+	MAP_DRONE=4,
 
-	MAP_WARPIN = -6,
+	MAP_WARPIN=5,
 
-	MAP_WARPOUT = -7,
+	MAP_WARPOUT=6,
 
-	MAP_TRAMPOLINE = -8
+	MAP_TRAMPOLINE=7
 };

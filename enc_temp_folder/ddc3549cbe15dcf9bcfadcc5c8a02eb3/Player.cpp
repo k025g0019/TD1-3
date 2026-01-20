@@ -3,9 +3,9 @@
 #include "Map.h"
 #include "MapCollision.h"
 #include "camera.h"
+#include <cmath> 
 #include <math.h>
 #include <algorithm>
-#include"GameScene.h"
 
 int playerHitMusic = -1; // 初期値を設定
 
@@ -247,7 +247,6 @@ void Player::CheckGimmicks()
             return; // 死んだら即終了
 
         case MAP_GOAL:
-            SceneType::CLEAR;
             break;
 
         case MAP_BIRD:
