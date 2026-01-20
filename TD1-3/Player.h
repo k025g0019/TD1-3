@@ -23,6 +23,8 @@ public:
 	void Draw();
 	void DoHitStop(int frames);
 	bool CheckTileCollisions();
+	Player();
+	~Player();
 private:
 	bool hitWall_ = false;
 };

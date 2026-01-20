@@ -5,10 +5,6 @@
 #include "camera.h"
 int playerHitMusic;
 #include <cmath> // fabsf
-void Player::Initialize() {
-	status.pos = { 50.0f, 60.0f };
-	status.vel = { 250.0f, 0.0f };   // px/s
-	status.radius = 25.0f;
 
 Player::Player()
 {
@@ -29,28 +25,24 @@ void Player::Initialize()
     status.pos = { 50.0f, 60.0f };
     status.vel = { 250.0f, 0.0f };   // px/s
     status.radius = 25.0f;
-    justWarped_ = false; // ワープフラグ初期化
 
     if (playerHitMusic == -1)
     {
-        playerHitMusic = Novice::LoadAudio("./Resource/Music/HitPlayer.mp3");
+     //   playerHitMusic = Novice::LoadAudio("./Resource/Music/HitPlayer.mp3");
     }
 }
 
 void Player::DoHitStop(int frames) {
     HitStop::Instance().Start(frames);             // 時間停止
     Camera::Instance().StartShake(frames, 10.0f);   // 演出として画面揺れ
-    Novice::PlayAudio(playerHitMusic, false, 1); // ヒット音再生
-    if (vibration) vibration->runPattern(PATTERN_EXPLOSION_DAMAGE);
+   // Novice::PlayAudio(playerHitMusic, false, 1); // ヒット音再生
+    //if (vibration) vibration->runPattern(PATTERN_EXPLOSION_DAMAGE);
 }
 
 void Player::Update() {
     if (vibration) vibration->Update();
     const float dt = 1.0f / 60.0f;
     Camera::Instance().Follow(status.pos.x, status.pos.y);
-
-    // 前フレームの座標を保存（判定用）
-    prevPos_ = status.pos;
 
     // =========================
     // エアライダー寄りパラメータ
@@ -102,77 +94,6 @@ void Player::Update() {
     // =========================
     status.vel.x += acc.x * dt;
     status.vel.y += acc.y * dt;
-
-void Player::Update() {
-	playerHitMusic = Novice::LoadAudio("./Resource/Music/HitPlayer.mp3");
-	const float dt = 1.0f / 60.0f;
-	Camera::Instance().Follow(status.pos.x, status.pos.y);
-	// =========================
-	// エアライダー寄りパラメータ
-	// =========================
-	// 重力（下向き）
-	const float gravity = 1000.0f;          // px/s^2
-
-	// 前進加速（速度は増えて良い：ただし抗力でだんだん効きが減る）
-	const float forwardAccel = 1200.0f;     // px/s^2
-
-	// 空気抵抗（X/Y別。Xは「無限加速」を抑える）
-	const float dragX = 1.8f;               // 1/s
-	const float dragY = 1.2f;               // 1/s
-
-	// 速度から生まれる揚力（エアライド感の核）
-	// lift = liftK * |vx| だと “速いほど沈みにくい”
-	const float liftK = 3.2f;               // (px/s^2) / (px/s) = 1/s
-
-	// 揚力の上限：上昇しないように重力の何割まで打ち消すか
-	const float liftMaxRate = 0.99f;        // 0.90～0.98 推奨
-
-	// ダイブ（Space）：揚力を弱め、沈みを増やして速度を稼ぐ
-	const float diveExtraDown = 900.0f;     // px/s^2
-	const float diveLiftRate = 0.35f;      // 0.20～0.60
-
-	// “沈みすぎ破綻”防止（滑空中のみ）
-	const float maxSinkGlide = 260.0f;      // px/s（200～350）
-
-	// 速度上限（暴走防止：大きめでも可）
-	const float maxSpeedX = 2000.0f;        // px/s
-	const float maxSpeedY = 1600.0f;        // px/s
-
-	// =========================
-	// 入力
-	// =========================
-	const bool isDive = Novice::CheckHitKey(DIK_SPACE);
-
-	// =========================
-	// 加速度（エネルギー交換型）
-	// =========================
-	Vector2 acc = { 0.0f, 0.0f };
-
-	// 前進（常時）
-	acc.x += forwardAccel;
-
-	// 重力（常時）
-	acc.y += gravity;
-
-	// 揚力：速いほど沈みにくい（ただし上昇しないよう上限）
-	float speedX = fabsf(status.vel.x);
-	float lift = liftK * speedX;
-
-	float liftMax = gravity * liftMaxRate;
-	if (lift > liftMax) lift = liftMax;
-
-	// ダイブ中は揚力を弱めて沈みやすくする
-	if (isDive) {
-		lift *= diveLiftRate;
-		acc.y += diveExtraDown;
-	}
-
-	// 揚力は上向きなのでマイナス
-	acc.y -= lift;
-
-	// 空気抵抗（速度に比例して逆向き）
-	acc.x += -dragX * status.vel.x;
-	acc.y += -dragY * status.vel.y;
 
 	// =========================
 	// 速度更新
@@ -314,6 +235,7 @@ void Player::Draw() {
 		0xFFFF00FF,
 		kFillModeSolid
 	);
+}
 
 bool Player::CheckTileCollisions()
 {
