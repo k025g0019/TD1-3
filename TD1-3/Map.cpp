@@ -150,9 +150,6 @@ int LoadMapLDtk(const char* filePath)
 		// ============================
 		// 見た目（AutoLayer / Tiles）
 		// ============================
-		// ============================
-　　// 見た目タイル（Tiles / AutoLayer）
-　　// ============================
 		cJSON* tiles = cJSON_GetObjectItem(layer, "gridTiles");
 		if (!tiles)
 		{
