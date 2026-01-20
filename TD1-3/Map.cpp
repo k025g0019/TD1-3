@@ -139,7 +139,7 @@ void DrawMapChips(void)
 					dstX, dstY,
 					TILE_SIZE, TILE_SIZE,
 					0.0f,
-					0xFF0000FF, // 赤
+					BLACK,
 					kFillModeSolid
 				);
 				break;
@@ -148,7 +148,7 @@ void DrawMapChips(void)
 					dstX, dstY,
 					TILE_SIZE, TILE_SIZE,
 					0.0f,
-					0xFF0000FF, // 赤
+					BLACK,
 					kFillModeSolid
 				);
 				break;
