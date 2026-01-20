@@ -41,6 +41,9 @@
     <ClCompile Include="Vibration.cpp">
       <Filter>KamataEngine</Filter>
     </ClCompile>
+    <ClCompile Include="cJSON.c">
+      <Filter>KamataEngine</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="C:\KamataEngine\DirectXGame\audio\Audio.h">
@@ -133,5 +136,6 @@
     <ClInclude Include="camera.h" />
     <ClInclude Include="Vibration.h" />
     <ClInclude Include="HitStop.h" />
+    <ClInclude Include="cJSON.h" />
   </ItemGroup>
 </Project>

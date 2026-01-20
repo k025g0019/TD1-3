@@ -2,171 +2,199 @@
 #include <stdlib.h>
 #include <string.h>
 #include "Map.h"
-
-
-int gMap[MAP_HEIGHT][MAP_WIDTH] = {};
+#include "cJSON.h"
+int gMap[MAP_HEIGHT][MAP_WIDTH];
+int Number=0;
+// ============================
+// グローバル
+// ============================
+int gVisualMap[MAP_HEIGHT][MAP_WIDTH];
+int gCollisionMap[MAP_HEIGHT][MAP_WIDTH];
 int gChipSheetHandle = -1;
-int drawnHandle = -1;
 
-void itializeMap()
+// ============================
+// タイルシート最大数
+// ============================
+static inline int GetSheetMaxTiles()
 {
-	gChipSheetHandle = Novice::LoadTexture("./Resource/Image/sand.png");
-	drawnHandle = Novice::LoadTexture("./Resource/Image/Drawn.bmp");
-}
-int LoadMapCSV(const char* filePath, int map[MAP_HEIGHT][MAP_WIDTH])
-{
-    FILE* fp = NULL;
-
-    if (fopen_s(&fp, filePath, "r") != 0 || fp == NULL) {
-        return 0;
-    }
-
-    char line[LINE_BUF_SIZE];
-    int y = 0;
-
-    while (fgets(line, (int)sizeof(line), fp) != NULL && y < MAP_HEIGHT) {
-        line[strcspn(line, "\r\n")] = '\0';
-
-        int x = 0;
-        char* context = NULL;
-        char* token = strtok_s(line, ",", &context);
-
-        while (token != NULL && x < MAP_WIDTH) {
-            map[y][x] = atoi(token);
-            token = strtok_s(NULL, ",", &context);
-            x++;
-        }
-
-
-        while (x < MAP_WIDTH) {
-            map[y][x] = -1;
-            x++;
-        }
-
-        y++;
-    }
-
-
-    while (y < MAP_HEIGHT) {
-        for (int x = 0; x < MAP_WIDTH; x++) {
-            map[y][x] = -1;
-        }
-        y++;
-    }
-
-    fclose(fp);
-    return 1;
+	return SHEET_COLS * SHEET_ROWS;
 }
 
-void DrawMapChips(void)
+// ============================
+// 初期化
+// ============================
+void InitializeMap()
 {
+	gChipSheetHandle =
+		Novice::LoadTexture("./Resource/Image/Inca_front_by_Kronbits-extended.png");
 
-	Camera& cam = Camera::Instance();
-	// マップ描画ループの中身
 	for (int y = 0; y < MAP_HEIGHT; y++)
-	{
 		for (int x = 0; x < MAP_WIDTH; x++)
 		{
-			int id = gMap[y][x];
+			gVisualMap[y][x] = -1;
+			gCollisionMap[y][x] = MAP_EMPTY;
+		}
+}
 
-			// CSV の値 = タイルシートのインデックス
-			int chipIndex = id;
+// ============================
+// LDtk 読み込み
+// ============================
+int LoadMapLDtk(const char* filePath)
+{
+	FILE* fp = NULL;
+	if (fopen_s(&fp, filePath, "rb") != 0 || !fp)
+		return 0;
 
-			int srcX = (chipIndex % SHEET_COLS) * CHIP_W;
-			int srcY = (chipIndex / SHEET_COLS) * CHIP_H;
+	fseek(fp, 0, SEEK_END);
+	long size = ftell(fp);
+	fseek(fp, 0, SEEK_SET);
 
-			int dstX = x * TILE_SIZE + (int)cam.x;
-			int dstY = y * TILE_SIZE + (int)cam.y;
+	char* buffer = (char*)malloc(size + 1);
+	fread(buffer, 1, size, fp);
+	buffer[size] = '\0';
+	fclose(fp);
 
-			// enum を使って分岐
-			switch (id)
+	cJSON* root = cJSON_Parse(buffer);
+	free(buffer);
+	if (!root) return 0;
+
+	cJSON* levels = cJSON_GetObjectItem(root, "levels");
+	cJSON* level = cJSON_GetArrayItem(levels, 0);
+	cJSON* layers = cJSON_GetObjectItem(level, "layerInstances");
+
+	int layerCount = cJSON_GetArraySize(layers);
+	for (int i = 0; i < layerCount; i++)
+	{
+		cJSON* layer = cJSON_GetArrayItem(layers, i);
+		const char* type =
+			cJSON_GetObjectItem(layer, "__type")->valuestring;
+		// ============================
+// Collision (IntGrid → gCollisionMap)
+// ============================
+		if (strcmp(type, "IntGrid") == 0)
+		{
+			cJSON* csv = cJSON_GetObjectItem(layer, "intGridCsv");
+			if (!csv) continue;
+
+
+
+			int count = cJSON_GetArraySize(csv);
+			for (int j = 0; j < count; j++)
 			{
+				int v = cJSON_GetArrayItem(csv, j)->valueint;
 
-				// ■ 壁の描画
-			case MAP_WALL:
-				Novice::DrawSpriteRect(
-					dstX, dstY,
-					srcX, srcY,
-					CHIP_W, CHIP_H,
-					gChipSheetHandle,
-					1.0f, 1.0f,
-					0.0f,
-					0xFFFFFFFF
-				);
-				break;
+				int x = j % MAP_WIDTH;
+				int y = j / MAP_WIDTH;
 
-				// ■ ゴールの描画
-			case MAP_GOAL:
-				Novice::DrawBox(
-					dstX, dstY,
-					TILE_SIZE, TILE_SIZE,
-					0.0f,
-					0x00FF00FF, // 緑
-					kFillModeSolid
-				);
-				break;
-
-				// ■ 危険地帯（トゲなど）の描画
-			case MAP_DANGER:
-				Novice::DrawBox(
-					dstX, dstY,
-					TILE_SIZE, TILE_SIZE,
-					0.0f,
-					0xFF0000FF, // 赤
-					kFillModeSolid
-				);
-				break;
-			case MAP_BIRD:
-				Novice::DrawBox(
-					dstX, dstY,
-					TILE_SIZE, TILE_SIZE,
-					0.0f,
-					0xFF0000FF, // 赤
-					kFillModeSolid
-				);
-				break;
-			case MAP_DRONE:
-				Novice::DrawBox(
-					dstX, dstY,
-					TILE_SIZE, TILE_SIZE,
-					0.0f,
-					0xFF0000FF, // 赤
-					kFillModeSolid
-				);
-				break;
-			case MAP_WARPIN:
-				Novice::DrawBox(
-					dstX, dstY,
-					TILE_SIZE, TILE_SIZE,
-					0.0f,
-					0xFF0000FF, // 赤
-					kFillModeSolid
-				);
-				break;
-			case MAP_WARPOUT:
-				Novice::DrawBox(
-					dstX, dstY,
-					TILE_SIZE, TILE_SIZE,
-					0.0f,
-					0xFF0000FF, // 赤
-					kFillModeSolid
-				);
-				break;
-			case MAP_TRAMPOLINE:
-				Novice::DrawBox(
-					dstX, dstY,
-					TILE_SIZE, TILE_SIZE,
-					0.0f,
-					0xFF0000FF, // 赤
-					kFillModeSolid
-				);
-				break;
-				// □ 空きマス (MAP_EMPTY = -1) や未定義の値
-			case MAP_EMPTY:
-			default:
-				// 何も描画しない
-				break;
+				if (x >= 0 && x < MAP_WIDTH &&
+					y >= 0 && y < MAP_HEIGHT)
+				{
+					gCollisionMap[y][x] = v;
+					// v == 0 → MAP_EMPTY
+					// v == 1 → MAP_WALL（LDtk 側と一致させる）
+				}
 			}
 		}
+
+		// ============================
+		// 見た目（AutoLayer / Tiles）
+		// ============================
+		// ============================
+// 見た目タイル（Tiles / AutoLayer）
+// ============================
+		cJSON* tiles = cJSON_GetObjectItem(layer, "gridTiles");
+		if (!tiles)
+		{
+			tiles = cJSON_GetObjectItem(layer, "autoLayerTiles");
+		}
+		if (!tiles)
+		{
+			continue;   // ← タイルを持たないレイヤーは無視
+		}
+
+		int tileCount = cJSON_GetArraySize(tiles);
+		for (int t = 0; t < tileCount; t++)
+		{
+			cJSON* tile = cJSON_GetArrayItem(tiles, t);
+
+			cJSON* px = cJSON_GetObjectItem(tile, "px");
+			int x = cJSON_GetArrayItem(px, 0)->valueint / TILE_SIZE;
+			int y = cJSON_GetArrayItem(px, 1)->valueint / TILE_SIZE;
+
+			cJSON* src = cJSON_GetObjectItem(tile, "src");
+			int srcX = cJSON_GetArrayItem(src, 0)->valueint;
+			int srcY = cJSON_GetArrayItem(src, 1)->valueint;
+
+			int tileIndex =
+				(srcY / CHIP_H) * SHEET_COLS +
+				(srcX / CHIP_W);
+
+			if (x >= 0 && x < MAP_WIDTH &&
+				y >= 0 && y < MAP_HEIGHT)
+			{
+				gVisualMap[y][x] = tileIndex;
+			}
+		}
+
 	}
+
+	cJSON_Delete(root);
+	return 1;
+}
+
+// ============================
+// タイル描画
+// ============================
+static void DrawTile(int x, int y, int tileIndex)
+{
+	if (tileIndex < 0) return;
+
+	int srcX = (tileIndex % SHEET_COLS) * CHIP_W;
+	int srcY = (tileIndex / SHEET_COLS) * CHIP_H;
+	Number++;
+	gCollisionMap;
+	printf("%d", Number);
+	Novice::DrawSpriteRect(
+		x, y,
+		srcX, srcY,
+		CHIP_W, CHIP_H,
+		gChipSheetHandle,
+		0.05f, 0.0714f,
+		0.0f,
+		0xFFFFFFFF
+	);
+}
+
+// ============================
+// マップ描画
+// ============================
+void DrawMapChips(void)
+{
+	Camera& cam = Camera::Instance();
+
+	for (int y = 0; y < MAP_HEIGHT; y++) {
+		for (int x = 0; x < MAP_WIDTH; x++)
+		{
+			int tile = gVisualMap[y][x];
+
+			if (tile <= 0) continue;
+
+			int dx = x * TILE_SIZE + (int)cam.x;
+			int dy = y * TILE_SIZE + (int)cam.y;
+			if (gVisualMap[y][x] >= 0)
+			{
+				/*Novice::DrawBox(
+					dx, dy,
+					TILE_SIZE, TILE_SIZE,
+					0.0f,
+					0xFF0000FF,
+					kFillModeWireFrame
+				);*/
+				DrawTile(dx, dy, tile);
+			}
+
+
+		}
+	}
+
 }

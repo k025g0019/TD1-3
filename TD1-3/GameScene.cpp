@@ -137,7 +137,7 @@ void SceneManager::Update(char* keys, char* preKeys) {
 
 
 		player_->Initialize();
-		itializeMap();
+		InitializeMap();
 
 		//マウスの左クリックで次のシーンへ
 		if (Novice::IsPressMouse(0) ||
@@ -159,7 +159,7 @@ void SceneManager::Update(char* keys, char* preKeys) {
 		break;
 
 	case SceneType::STAGESELECT:
-		LoadMapCSV("./Map/Map4.csv", gMap);
+		LoadMapLDtk("./Map/Map1.ldtk");
 		if (Novice::IsPressMouse(0) ||
 			Novice::IsTriggerButton(0, kPadButton10))
 		{
@@ -168,6 +168,7 @@ void SceneManager::Update(char* keys, char* preKeys) {
 		}
 		break;
 	case SceneType::PLAY:
+
 		HitStop::Instance().Update();
 
 		DrawMapChips();

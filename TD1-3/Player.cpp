@@ -154,7 +154,9 @@ void Player::Update() {
 		status.vel.x *= friction;
 	}
 	// 壁との当たり判定（押し戻し）
-	CheckTileCollisions();
+	if (CheckTileCollisions()) {
+		DoHitStop(10);  // ← 6フレームだけ時間停止
+	}
 
 	// ★ギミックとの判定（効果発動）
 	CheckGimmicks();
@@ -178,10 +180,7 @@ void Player::CheckGimmicks()
     float cTop = status.pos.y - status.radius;
     float cBottom = status.pos.y + status.radius;
 
-    int minX = (int)(fmin(pLeft, cLeft) / TILE_SIZE);
-    int maxX = (int)(fmax(pRight, cRight) / TILE_SIZE);
-    int minY = (int)(fmin(pTop, cTop) / TILE_SIZE);
-    int maxY = (int)(fmax(pBottom, cBottom) / TILE_SIZE);
+	int tile = gCollisionMap[cY][cX];
 
     if (minX < 0) minX = 0;
     if (maxX >= MAP_WIDTH) maxX = MAP_WIDTH - 1;
@@ -290,64 +289,21 @@ void Player::CheckGimmicks()
     }
 }
 
-// 線形補間（aからbへ tの割合で近づく）用の便利関数
-float Lerp(float a, float b, float t) 
-{
-    return a + (b - a) * t;
-}
-
-void Player::UpdateWarpAnimation() 
-{
-
-    // アニメーションの速度（小さいほどゆっくり）
-    const float kAnimSpeed = 1.0f / 30.0f; // 30フレームで完了
-
-    warpTimer_ += kAnimSpeed;
-
-    if (warpState_ == WARP_IN) {
-        // =============================
-        // 吸い込まれる動き (IN)
-        // =============================
-
-        // 1. 位置：現在地から「入口の中心」へズズズと動く
-        // タイマーが進むにつれて warpStartPos に近づく
-        status.pos.x = Lerp(status.pos.x, warpStartPos_.x, 0.2f);
-        status.pos.y = Lerp(status.pos.y, warpStartPos_.y, 0.2f);
-
-        // 2. 形：にゅいーん（横に細く、縦に長く）
-        // タイマー(0.0 -> 1.0) に合わせて変形
-        scale_.x = 1.0f - warpTimer_; // だんだん細くなる (1.0 -> 0.0)
-        scale_.y = 1.0f + warpTimer_; // だんだん伸びる (1.0 -> 2.0)
-
-        // 吸い込み完了？
-        if (warpTimer_ >= 1.0f) {
-            warpState_ = WARP_OUT; // 出るモードへ
-            warpTimer_ = 0.0f;     // タイマーリセット
-
-            // ★ここで瞬間移動！★
-            status.pos = warpDestPos_;
-        }
-
-    }
-    else if (warpState_ == WARP_OUT) {
-        // =============================
-        // 飛び出す動き (OUT)
-        // =============================
-
-        // 1. 形：細長い状態から、元の大きさに戻る
-        // タイマー (0.0 -> 1.0)
-        // x: 0.0 -> 1.0
-        // y: 2.0 -> 1.0
-        scale_.x = warpTimer_;
-        scale_.y = 2.0f - warpTimer_;
-
-        // 2. 位置：少し上に飛び出す感じを出したければ
-        // status.pos.y -= 2.0f; // など足してもいい
-
-        // 完了？
-        if (warpTimer_ >= 1.0f) {
-            warpState_ = WARP_NONE; // 通常モードへ戻る
-            scale_ = { 1.0f, 1.0f }; // 大きさを完璧に戻す
+		// ▼ ワープ (In -> Out)
+	case MAP_WARPIN:
+		// マップ全体から出口(WARPOUT)を探して移動
+		for (int y = 0; y < MAP_HEIGHT; y++)
+		{
+			for (int x = 0; x < MAP_WIDTH; x++)
+			{
+				if (gCollisionMap[y][x] == MAP_WARPOUT) {
+					status.pos.x = (float)(x * TILE_SIZE) + status.radius;
+					status.pos.y = (float)(y * TILE_SIZE) + status.radius;
+					return; // 見つかったら即終了
+				}
+			}
+		}
+		break;
 
             // 出た瞬間に少しジャンプさせる？（お好みで）
             status.vel.y = -300.0f;
@@ -372,31 +328,35 @@ void Player::Draw()
         (int)drawW, (int)drawH,
         0.0f, WHITE, kFillModeSolid);
 }
-
-bool Player::CheckTileCollisions(int map[MAP_HEIGHT][MAP_WIDTH]) {
+bool Player::CheckTileCollisions()
+{
 	hitWall_ = false;
 
-	if (!MapCollisionTop(&status.pos.x, &status.pos.y, &status.radius, gMap)) {
-		int topIndex = int((status.pos.y - status.radius) / TILE_SIZE);
-		status.pos.y = (topIndex + 1) * TILE_SIZE + status.radius;
+	if (!MapCollisionTop(&status.pos.x, &status.pos.y, &status.radius))
+	{
+		int ty = int((status.pos.y - status.radius) / TILE_SIZE);
+		status.pos.y = (ty + 1) * TILE_SIZE + status.radius;
 		hitWall_ = true;
 	}
 
-	if (!MapCollisionBottom(&status.pos.x, &status.pos.y, &status.radius, gMap)) {
-		int bottomIndex = int((status.pos.y + status.radius) / TILE_SIZE);
-		status.pos.y = bottomIndex * TILE_SIZE - status.radius;
+	if (!MapCollisionBottom(&status.pos.x, &status.pos.y, &status.radius))
+	{
+		int by = int((status.pos.y + status.radius) / TILE_SIZE);
+		status.pos.y = by * TILE_SIZE - status.radius;
 		hitWall_ = true;
 	}
 
-	if (!MapCollisionLeft(&status.pos.x, &status.pos.y, &status.radius, gMap)) {
-		int leftIndex = int(status.pos.x / TILE_SIZE);
-		status.pos.x = leftIndex * TILE_SIZE + status.radius;
+	if (!MapCollisionLeft(&status.pos.x, &status.pos.y, &status.radius))
+	{
+		int lx = int((status.pos.x - status.radius) / TILE_SIZE);
+		status.pos.x = (lx + 1) * TILE_SIZE + status.radius;
 		hitWall_ = true;
 	}
 
-	if (!MapCollisionRight(&status.pos.x, &status.pos.y, &status.radius, gMap)) {
-		int rightIndex = int(status.pos.x / TILE_SIZE);
-		status.pos.x = (rightIndex + 1) * TILE_SIZE - status.radius;
+	if (!MapCollisionRight(&status.pos.x, &status.pos.y, &status.radius))
+	{
+		int rx = int((status.pos.x + status.radius) / TILE_SIZE);
+		status.pos.x = rx * TILE_SIZE - status.radius;
 		hitWall_ = true;
 	}
 
