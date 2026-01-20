@@ -171,13 +171,12 @@ void SceneManager::Update(char* keys, char* preKeys) {
 
 		HitStop::Instance().Update();
 
-		DrawMapChips();
+		
 
 		player_->Update();
 
-		/*if (player_->CheckTileCollisions(gMap)) {
-			StartFade(SceneType::GAMEOVER);
-		}
+
+		
 
 
 		// オブジェクトの振動・カメラの更新
@@ -323,7 +322,8 @@ void SceneManager::Draw() {
 
 	case SceneType::PLAY:
 		player_->Draw();
-
+		DrawMapChips();
+		DrawEntities();
 		break;
 
 	case SceneType::CLEAR:

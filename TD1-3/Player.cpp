@@ -6,8 +6,6 @@
 #include "camera.h"
 int playerHitMusic;
 #include <cmath> // fabsf
-#include <math.h>
-#include<algorithm>
 void Player::Initialize() {
 	status.pos = { 50.0f, 60.0f };
 	status.vel = { 250.0f, 0.0f };   // px/s
@@ -165,129 +163,39 @@ void Player::Update() {
 
 void Player::CheckGimmicks()
 {
-    isWarping_ = false;
 
-    // =========================================================
-    // 1. 範囲総当たり判定 (Swept AABB) の準備
-    // =========================================================
-    float pLeft = prevPos_.x - status.radius;
-    float pRight = prevPos_.x + status.radius;
-    float pTop = prevPos_.y - status.radius;
-    float pBottom = prevPos_.y + status.radius;
+	// プレイヤーの中心座標に対応するマップチップ番号を取得
+	int cX = (int)(status.pos.x / TILE_SIZE);
+	int cY = (int)(status.pos.y / TILE_SIZE);
 
-    float cLeft = status.pos.x - status.radius;
-    float cRight = status.pos.x + status.radius;
-    float cTop = status.pos.y - status.radius;
-    float cBottom = status.pos.y + status.radius;
+	// 配列外参照防止
+	if (cX < 0 || cX >= MAP_WIDTH || cY < 0 || cY >= MAP_HEIGHT) return;
 
 	int tile = gCollisionMap[cY][cX];
 
-    if (minX < 0) minX = 0;
-    if (maxX >= MAP_WIDTH) maxX = MAP_WIDTH - 1;
-    if (minY < 0) minY = 0;
-    if (maxY >= MAP_HEIGHT) maxY = MAP_HEIGHT - 1;
+	switch (tile)
+	{
+		// ▼ 危険地帯
+	case MAP_DANGER:
+		// ミス処理へ（初期位置に戻すなど）
+		// Initialize();
+		break;
 
-    // =========================================================
-    // 2. ワープ後の「脱出待ち」チェック
-    // =========================================================
-    // ワープした直後なら、ワープマスから完全に離れるまで何もしない
-    if (justWarped_) {
-        bool stillTouchingWarp = false;
+		// ▼ ゴール
+	case MAP_GOAL:
+		// シーン遷移フラグを立てるなど
+		break;
 
-        for (int y = minY; y <= maxY; y++) {
-            for (int x = minX; x <= maxX; x++) {
-                int tile = map[y][x];
-                if (tile == MAP_WARPIN || tile == MAP_WARPOUT) {
-                    stillTouchingWarp = true;
-                    break;
-                }
-            }
-        }
+		// ▼ 鳥（減速）
+	case MAP_BIRD:
+		status.vel.x *= 0.5f; // 速度を半分にする
+		status.vel.y *= 0.5f;
+		break;
 
-        if (stillTouchingWarp) {
-            return; // まだ重なっているので、他の判定もしない
-        }
-        else {
-            justWarped_ = false; // 離れた！判定再開
-        }
-    }
-
-    // =========================================================
-    // 3. 全ギミック判定ループ
-    // =========================================================
-    for (int y = minY; y <= maxY; y++) {
-        for (int x = minX; x <= maxX; x++) {
-
-            int tile = map[y][x];
-
-            // -------------------------------------------------
-            // ワープ処理 (MAP_WARPIN)
-            // -------------------------------------------------
-            if (tile == MAP_WARPIN) 
-            {
-                // 出口を探す
-                int targetType = MAP_WARPOUT;
-                for (int ty = 0; ty < MAP_HEIGHT; ty++) 
-                {
-                    for (int tx = 0; tx < MAP_WIDTH; tx++) 
-                    {
-                        if (map[ty][tx] == targetType) 
-                        {
-
-                            // 相手の中心座標
-                            float targetCX = tx * TILE_SIZE + TILE_SIZE / 2.0f;
-                            float targetCY = ty * TILE_SIZE + TILE_SIZE / 2.0f;
-
-                            // 吸い込まれる入口の中心
-                            float startCX = x * TILE_SIZE + TILE_SIZE / 2.0f;
-                            float startCY = y * TILE_SIZE + TILE_SIZE / 2.0f;
-
-                            // ▼▼▼ 即移動せず、演出セットアップ！ ▼▼▼
-
-                            warpState_ = WARP_IN;     // 「吸い込みモード」へ
-                            warpTimer_ = 0.0f;        // タイマーリセット
-                            warpStartPos_ = { startCX, startCY }; // 入口の中心
-                            warpDestPos_ = { targetCX, targetCY }; // 出口の中心
-
-                            status.vel = { 0, 0 };    // 勢いを消す（重要）
-
-                            return; // ここで処理を抜ける
-                        }
-                    }
-                }
-            }
-
-            // -------------------------------------------------
-            // その他のギミック処理
-            // -------------------------------------------------
-            switch (tile) {
-            case MAP_DANGER:
-                Initialize(); // 死んだらリセット
-                return;       // 即終了
-
-            case MAP_GOAL:
-                // ゴール処理（シーン遷移フラグなどがあればここに書く）
-                break;
-
-            case MAP_BIRD:
-                // 減速エリア
-                status.vel.x *= 0.5f;
-                status.vel.y *= 0.5f;
-                break;
-
-            case MAP_TRAMPOLINE:
-                // 大ジャンプ
-                status.vel.y = -1200.0f;
-                break;
-
-            case MAP_DRONE:
-                // 横方向の減速
-                status.vel.x *= 0.8f;
-                break;
-            }
-        }
-    }
-}
+		// ▼ トランポリン
+	case MAP_TRAMPOLINE:
+		status.vel.y = -200.0f; // 強制的に上へ跳ねさせる
+		break;
 
 		// ▼ ワープ (In -> Out)
 	case MAP_WARPIN:
@@ -305,28 +213,31 @@ void Player::CheckGimmicks()
 		}
 		break;
 
-            // 出た瞬間に少しジャンプさせる？（お好みで）
-            status.vel.y = -300.0f;
-        }
-    }
+		// ▼ ドローン（ここが少し難しい）
+		// ドローンは「上から踏んだか」「それ以外か」判定が必要なので
+		// CheckTileCollisions の床判定の方に組み込むのが良いかもしれません。
+		// ここでは簡易的に「触れたら減速」だけ書いておきます。
+	case MAP_DRONE:
+		status.vel.x *= 0.8f;
+		break;
+	}
 }
 
-void Player::Draw() 
-{
-    // 描画する幅と高さを、scale_ 倍する
-    float drawW = status.radius * 2 * scale_.x;
-    float drawH = status.radius * 2 * scale_.y;
 
-    // 中心基準で描画するために座標を調整
-    // (pos は中心座標と仮定)
-    float drawX = status.pos.x - (drawW / 2.0f);
-    float drawY = status.pos.y - (drawH / 2.0f);
 
-    // 描画 (色は白とか適当に)
-    Novice::DrawBox(
-        (int)drawX, (int)drawY,
-        (int)drawW, (int)drawH,
-        0.0f, WHITE, kFillModeSolid);
+
+void Player::Draw() {
+	Camera& cam = Camera::Instance();
+	// プレイヤーを四角形で描画
+	Novice::DrawEllipse(
+		static_cast<int>(status.pos.x + cam.x),
+		static_cast<int>(status.pos.y + cam.y),
+		static_cast<int>(status.radius),
+		static_cast<int>(status.radius),
+		0.0f,
+		0xFFFF00FF,
+		kFillModeSolid
+	);
 }
 bool Player::CheckTileCollisions()
 {
