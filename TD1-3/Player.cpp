@@ -3,13 +3,27 @@
 #include "Map.h"
 #include "MapCollision.h"
 #include "camera.h"
-int playerHitMusic;
+int playerHitMusic = -1;
 #include <cmath> // fabsf
 
 Player::Player()
 {
     // 振動機能の初期化
     vibration = new Vibration(0);
+}
+bool CircleRectHit(
+	float cx, float cy, float cr,
+	float rx, float ry, float rw, float rh
+)
+{
+	// 円中心から矩形への最近点
+	float nearestX = fmaxf(rx, fminf(cx, rx + rw));
+	float nearestY = fmaxf(ry, fminf(cy, ry + rh));
+
+	float dx = cx - nearestX;
+	float dy = cy - nearestY;
+
+	return (dx * dx + dy * dy) <= (cr * cr);
 }
 
 Player::~Player()
@@ -25,7 +39,6 @@ void Player::Initialize()
     status.pos = { 50.0f, 60.0f };
     status.vel = { 250.0f, 0.0f };   // px/s
     status.radius = 25.0f;
-
     if (playerHitMusic == -1)
     {
      //   playerHitMusic = Novice::LoadAudio("./Resource/Music/HitPlayer.mp3");
@@ -43,7 +56,6 @@ void Player::Update() {
     if (vibration) vibration->Update();
     const float dt = 1.0f / 60.0f;
     Camera::Instance().Follow(status.pos.x, status.pos.y);
-
     // =========================
     // エアライダー寄りパラメータ
     // =========================
@@ -56,7 +68,7 @@ void Player::Update() {
     const float diveExtraDown = 900.0f;
     const float diveLiftRate = 0.35f;
     const float maxSinkGlide = 260.0f;
-    const float maxSpeedX = 2000.0f;
+    const float maxSpeedX = 1000.0f;
     const float maxSpeedY = 1600.0f;
 
     // =========================
@@ -93,14 +105,6 @@ void Player::Update() {
     // 速度更新
     // =========================
     status.vel.x += acc.x * dt;
-    status.vel.y += acc.y * dt;
-
-	// =========================
-	// 速度更新
-	// =========================
-	status.vel.x += acc.x * dt;
-	status.vel.y += acc.y * dt;
-
 	// 速度上限
 	if (status.vel.x > maxSpeedX) status.vel.x = maxSpeedX;
 	if (status.vel.x < -maxSpeedX) status.vel.x = -maxSpeedX;
@@ -159,6 +163,46 @@ void Player::Update() {
 
 	// ★ギミックとの判定（効果発動）
 	CheckGimmicks();
+	for (int i = 0; i < gEntityCount; i++)
+	{
+		// Entity 矩形
+		float ex = (float)gEntities[i].x;
+		float ey = (float)gEntities[i].y;
+		float ew = (float)gEntities[i].w;
+		float eh = (float)gEntities[i].h;
+
+		// プレイヤー足元
+		float playerBottom = status.pos.y + status.radius;
+
+		// Entity 上面
+		float entityTop = ey;
+
+		// ▼ 円 vs 矩形
+		if (CircleRectHit(
+			status.pos.x,
+			status.pos.y,
+			status.radius,
+			ex, ey, ew, eh
+		))
+		{
+			// ▼ 上から踏んだときだけ
+			if (status.vel.y > 0.0f && playerBottom < entityTop + 10.0f)
+			{
+				// トランポリン反発
+				status.vel.y = -fabsf(status.vel.y) * 1.2f - 300.0f;
+
+				// めり込み防止（少し上に戻す）
+				status.pos.y = entityTop - status.radius;
+
+				// ヒット演出
+				DoHitStop(6);
+			}
+		}
+
+
+
+	}
+
 }
 
 // --------------------------------------------------------
@@ -236,7 +280,6 @@ void Player::Draw() {
 		kFillModeSolid
 	);
 }
-
 bool Player::CheckTileCollisions()
 {
 	hitWall_ = false;
