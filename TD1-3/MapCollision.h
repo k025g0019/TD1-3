@@ -8,8 +8,10 @@ const int tileSize = 16;
 
 float MapCollisionLeft(float* playerPosX, float* playerPosY, float* radius, int mapDeta[MAP_HEIGHT][MAP_WIDTH]);
 
-float MapCollisionRight(float* playerPosX, float* playerPosY, float* radius, int mapDeta[MAP_HEIGHT][MAP_WIDTH]);
+bool MapCollisionTop(float* x, float* y, float* r);
+bool MapCollisionBottom(float* x, float* y, float* r);
 
-float MapCollisionTop(float* playerPosX, float* playerPosY, float* radius, int mapDeta[MAP_HEIGHT][MAP_WIDTH]);
+bool MapCollisionLeft(float* x, float* y, float* r);
 
-float MapCollisionBottom(float* playerPosX, float* playerPosY, float* radius, int mapDeta[MAP_HEIGHT][MAP_WIDTH]);
+bool MapCollisionRight(float* x, float* y, float* r);
+#pragma once
