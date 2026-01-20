@@ -2,8 +2,6 @@
 #include <Novice.h>
 #include "Map.h"
 
-// 必要なクラスの前方宣言
-// GameScene.cpp で #include されているヘッダーに対応
 class Player;
 
 enum class SceneType {

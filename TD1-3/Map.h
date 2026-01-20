@@ -3,7 +3,7 @@
 #include "camera.h"
 #define MAP_HEIGHT 45
 #define MAP_WIDTH  180
-#define LINE_BUF_SIZE 512
+#define LINE_BUF_SIZE 2048
 
 #define CHIP_W 16
 #define CHIP_H 16
