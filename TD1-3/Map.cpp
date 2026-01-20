@@ -5,6 +5,9 @@
 #include "cJSON.h"
 int gMap[MAP_HEIGHT][MAP_WIDTH];
 int Number=0;
+Entity gEntities[MAX_ENTITIES];
+int gEntityCount = 0;
+int gEnemyTex = -1;
 // ============================
 // グローバル
 // ============================
@@ -34,6 +37,7 @@ void InitializeMap()
 			gVisualMap[y][x] = -1;
 			gCollisionMap[y][x] = MAP_EMPTY;
 		}
+	gEntityCount = 0;
 }
 
 // ============================
@@ -94,6 +98,51 @@ int LoadMapLDtk(const char* filePath)
 					// v == 1 → MAP_WALL（LDtk 側と一致させる）
 				}
 			}
+		}
+		// ============================
+// Entities レイヤー
+// ============================
+		if (strcmp(type, "Entities") == 0)
+		{
+			cJSON* entities = cJSON_GetObjectItem(layer, "entityInstances");
+			if (!entities) continue;
+
+			int count = cJSON_GetArraySize(entities);
+
+			for (int e = 0; e < count && gEntityCount < MAX_ENTITIES; e++)
+			{
+				cJSON* ent = cJSON_GetArrayItem(entities, e);
+
+				// 名前 (__identifier)
+				const char* id =
+					cJSON_GetObjectItem(ent, "__identifier")->valuestring;
+
+				// 位置 (px)
+				cJSON* px = cJSON_GetObjectItem(ent, "px");
+				int x = cJSON_GetArrayItem(px, 0)->valueint;
+				int y = cJSON_GetArrayItem(px, 1)->valueint;
+
+				// サイズ
+				int w = cJSON_GetObjectItem(ent, "width")->valueint;
+				int h = cJSON_GetObjectItem(ent, "height")->valueint;
+
+				// 保存
+				strncpy_s(
+					gEntities[gEntityCount].name,
+					sizeof(gEntities[gEntityCount].name),
+					id,
+					_TRUNCATE
+				);
+
+				gEntities[gEntityCount].x = x;
+				gEntities[gEntityCount].y = y;
+				gEntities[gEntityCount].w = w;
+				gEntities[gEntityCount].h = h;
+
+				gEntityCount++;
+			}
+
+			continue; // ★ タイル処理に行かせない
 		}
 
 		// ============================
@@ -232,6 +281,53 @@ void DrawMapChips(void)
 				// 何も描画しない
 				break;
 			}
+		}
+	}
+}
+void DrawEntities()
+{
+	Camera& cam = Camera::Instance();
+
+	for (int i = 0; i < gEntityCount; i++)
+	{
+		int dx = gEntities[i].x + (int)cam.x;
+		int dy = gEntities[i].y + (int)cam.y;
+
+		int tex = -1;
+
+		if (strcmp(gEntities[i].name, "Player") == 0)
+		{
+			tex = gPlayerTex;
+		}
+		else if (strcmp(gEntities[i].name, "Enemy") == 0)
+		{
+			tex = gEnemyTex;
+		}
+
+		if (tex >= 0)
+		{
+			Novice::DrawSprite(
+				dx,
+				dy,
+				tex,
+				1.0f,
+				1.0f,
+				0.0f,
+				0xFFFFFFFF
+			);
+		}
+		else
+		{
+			// 未設定エンティティは赤枠表示
+			Novice::DrawBox(
+				dx,
+				dy,
+				gEntities[i].w,
+				gEntities[i].h,
+				0.0f,
+				0xFF0000FF,
+				kFillModeWireFrame
+			);
 		}
 	}
 }

@@ -229,7 +229,7 @@ void SceneManager::Update(char* keys, char* preKeys) {
 
 		HitStop::Instance().Update();
 
-		DrawMapChips();
+		
 
 		player_->Update();
 
@@ -487,9 +487,116 @@ void SceneManager::StartFade(SceneType next)
 // ------------------------------------------------------------
 // ▼ 描画処理
 // ------------------------------------------------------------
-void SceneManager::Draw() 
-{
+void SceneManager::Draw() {
 
+	int mx, my;
+	Novice::GetMousePosition(&mx, &my);
+
+	//===========================
+	// ▼ シーン別描画処理
+	//===========================
+	switch (currentScene_) {
+
+	case SceneType::TITLE:
+		Novice::DrawSprite(0, 0, TITLEImage, 1.0f, 1.0f, 0.0f, 0xFFFFFFFF);
+		break;
+
+	case SceneType::PLAY:
+		player_->Draw();
+		DrawMapChips();
+		DrawEntities();
+		break;
+
+	case SceneType::CLEAR:
+
+		Novice::DrawSpriteRect(
+			0, 0,
+			0,
+			0,
+			1280,
+			720,
+			gameClearImage_,
+			1.0f,// 拡大率：そのまま
+			1.0f,
+			0.0f,
+			0xFFFFFFFF
+		);
+
+		break;
+
+	case SceneType::GAMEOVER:
+
+
+		Novice::DrawSpriteRect(
+			0, 0,
+			0,
+			0,
+			1280,
+			720,
+			gameOverImage_,
+			1.0f,// 拡大率：そのまま
+			1.0f,
+			0.0f,
+			0xFFFFFFFF
+		);
+		break;
+
+	case SceneType::PAUSE:
+		// --- ゲーム画面の描画（背景）---
+
+
+		// --- ポーズメニューの背景（半透明黒）---
+		Novice::DrawBox(0, 0, kWindowWidth, kWindowHeight, 0.0f, 0x00000088, kFillModeSolid);
+
+		// --- ボタン描画 ---
+		const char* labels[kPauseButtonCount_] = { "RESUME", "RETRY", "Guide" };
+
+		for (int i = 0; i < kPauseButtonCount_; i++) {
+
+			const Button& button = pauseButtons_[i];
+
+			// ★ hover 判定（マウス or パッドカーソル）
+			bool mouseHover = button.IsHovered(mx, my);
+			bool padHover = false;
+			//=====================================================================================
+			if (Novice::GetNumberOfJoysticks() >= 1) {
+				padHover = (i == pauseCursor_);  // ★ パッド選択判定追加
+			}
+			//=====================================================================================
+			bool hover = mouseHover || padHover;
+
+			unsigned int color = hover ? button.hoverColor : button.normalColor;
+
+
+			//==================================================================================================================================
+			float spriteW = 900.0f;    // スプライト全体の幅
+			int UIframeW = 300;     // 1コマ幅
+			int UIframeH = 60;     // 1コマ高さ
+
+			int a;
+			if (i == 0) {
+				a = 0;
+			}
+			else if (i == 1) {
+				a = 300;
+			}
+			else {
+				a = 600;
+			}
+
+			Novice::DrawSpriteRect(
+				button.x, button.y,
+				a, 0,
+				UIframeW, UIframeH,
+				pauseUI,
+				UIframeW / spriteW, 1.0f, 0.0f, color
+			);
+			//==================================================================================================================================
+		}
+		break;
+
+
+	}
     int mx, my;
     Novice::GetMousePosition(&mx, &my);
 
