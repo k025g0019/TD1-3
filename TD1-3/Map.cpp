@@ -214,76 +214,33 @@ static void DrawTile(int x, int y, int tileIndex)
 	);
 }
 
-// ============================
-// マップ描画
-// ============================
+// ============================// マップ描画// ============================
 void DrawMapChips(void)
 {
 	Camera& cam = Camera::Instance();
-
-	for (int y = 0; y < MAP_HEIGHT; y++) {
+	for (int y = 0; y < MAP_HEIGHT; y++) 
+	{		
 		for (int x = 0; x < MAP_WIDTH; x++)
-		{
-
-			if (tile <= 0) continue;
-
+		{			
+			int tile = gVisualMap[y][x];			
+			if (tile <= 0) continue;			
 			int dx = x * TILE_SIZE + (int)cam.x;
-			int dy = y * TILE_SIZE + (int)cam.y;
-      
-			case MAP_BIRD:
-				Novice::DrawBox(
-					dstX, dstY,
-					TILE_SIZE, TILE_SIZE,
-					0.0f,
-					0xFF0000FF, // 赤
-					kFillModeSolid
-				);
-				break;
-			case MAP_DRONE:
-				Novice::DrawBox(
-					dstX, dstY,
-					TILE_SIZE, TILE_SIZE,
-					0.0f,
-					0xFF0000FF, // 赤
-					kFillModeSolid
-				);
-				break;
-			case MAP_WARPIN:
-				Novice::DrawBox(
-					dstX, dstY,
-					TILE_SIZE, TILE_SIZE,
-					0.0f,
-					BLACK,
-					kFillModeSolid
-				);
-				break;
-			case MAP_WARPOUT:
-				Novice::DrawBox(
-					dstX, dstY,
-					TILE_SIZE, TILE_SIZE,
-					0.0f,
-					BLACK,
-					kFillModeSolid
-				);
-				break;
-			case MAP_TRAMPOLINE:
-				Novice::DrawBox(
-					dstX, dstY,
-					TILE_SIZE, TILE_SIZE,
-					0.0f,
-					0xFF0000FF, // 赤
-					kFillModeSolid
-				);
-				break;
-				// □ 空きマス (MAP_EMPTY = -1) や未定義の値
-			case MAP_EMPTY:
-			default:
-				// 何も描画しない
-				break;
-			}
+			int dy = y * TILE_SIZE + (int)cam.y;			
+			if (gVisualMap[y][x] >= 0)			
+			{		
+				/*Novice::DrawBox(		
+				dx, dy,	
+				TILE_SIZE, TILE_SIZE,		
+				0.0f,					
+				0xFF0000FF,	
+				kFillModeWireFrame
+				);*/			
+				DrawTile(dx, dy, tile);
+			}				
 		}
 	}
 }
+
 void DrawEntities()
 {
 	Camera& cam = Camera::Instance();
@@ -297,11 +254,11 @@ void DrawEntities()
 
 		if (strcmp(gEntities[i].name, "Player") == 0)
 		{
-			tex = gPlayerTex;
+			tex = -1;
 		}
 		else if (strcmp(gEntities[i].name, "Enemy") == 0)
 		{
-			tex = gEnemyTex;
+			tex = -1;
 		}
 
 		if (tex >= 0)
