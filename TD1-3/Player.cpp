@@ -2,7 +2,6 @@
 #include <Novice.h>
 #include "Map.h"
 #include "MapCollision.h"
-
 #include "camera.h"
 int playerHitMusic;
 #include <cmath> // fabsf
@@ -11,17 +10,98 @@ void Player::Initialize() {
 	status.vel = { 250.0f, 0.0f };   // px/s
 	status.radius = 25.0f;
 
+Player::Player()
+{
+    // 振動機能の初期化
+    vibration = new Vibration(0);
 }
 
+Player::~Player()
+{
+    if (vibration) {
+        delete vibration;
+        vibration = nullptr;
+    }
+}
+
+void Player::Initialize()
+{
+    status.pos = { 50.0f, 60.0f };
+    status.vel = { 250.0f, 0.0f };   // px/s
+    status.radius = 25.0f;
+    justWarped_ = false; // ワープフラグ初期化
+
+    if (playerHitMusic == -1)
+    {
+        playerHitMusic = Novice::LoadAudio("./Resource/Music/HitPlayer.mp3");
+    }
+}
 
 void Player::DoHitStop(int frames) {
-
-	HitStop::Instance().Start(frames);             // 時間停止
-	Camera::Instance().StartShake(frames, 10.0f);   // 演出として画面揺れ
-	Novice::PlayAudio(playerHitMusic, false, 1); // ヒット音再生
-
-
+    HitStop::Instance().Start(frames);             // 時間停止
+    Camera::Instance().StartShake(frames, 10.0f);   // 演出として画面揺れ
+    Novice::PlayAudio(playerHitMusic, false, 1); // ヒット音再生
+    if (vibration) vibration->runPattern(PATTERN_EXPLOSION_DAMAGE);
 }
+
+void Player::Update() {
+    if (vibration) vibration->Update();
+    const float dt = 1.0f / 60.0f;
+    Camera::Instance().Follow(status.pos.x, status.pos.y);
+
+    // 前フレームの座標を保存（判定用）
+    prevPos_ = status.pos;
+
+    // =========================
+    // エアライダー寄りパラメータ
+    // =========================
+    const float gravity = 1000.0f;
+    const float forwardAccel = 1200.0f;
+    const float dragX = 1.8f;
+    const float dragY = 1.2f;
+    const float liftK = 3.2f;
+    const float liftMaxRate = 0.99f;
+    const float diveExtraDown = 900.0f;
+    const float diveLiftRate = 0.35f;
+    const float maxSinkGlide = 260.0f;
+    const float maxSpeedX = 2000.0f;
+    const float maxSpeedY = 1600.0f;
+
+    // =========================
+    // 入力
+    // =========================
+    const bool isDive = Novice::CheckHitKey(DIK_SPACE);
+
+    // =========================
+    // 加速度計算
+    // =========================
+    Vector2 acc = { 0.0f, 0.0f };
+
+    acc.x += forwardAccel; // 前進
+    acc.y += gravity;      // 重力
+
+    // 揚力計算
+    float speedX = fabsf(status.vel.x);
+    float lift = liftK * speedX;
+    float liftMax = gravity * liftMaxRate;
+    if (lift > liftMax) lift = liftMax;
+
+    if (isDive) {
+        lift *= diveLiftRate;
+        acc.y += diveExtraDown;
+    }
+
+    acc.y -= lift;
+
+    // 空気抵抗
+    acc.x += -dragX * status.vel.x;
+    acc.y += -dragY * status.vel.y;
+
+    // =========================
+    // 速度更新
+    // =========================
+    status.vel.x += acc.x * dt;
+    status.vel.y += acc.y * dt;
 
 void Player::Update() {
 	playerHitMusic = Novice::LoadAudio("./Resource/Music/HitPlayer.mp3");
@@ -160,6 +240,10 @@ void Player::Update() {
 	CheckGimmicks();
 }
 
+// --------------------------------------------------------
+// ギミック判定（修正版）
+// プレイヤーの中心座標にあるタイルを判定します
+// --------------------------------------------------------
 
 void Player::CheckGimmicks()
 {
@@ -197,6 +281,7 @@ void Player::CheckGimmicks()
 		status.vel.y = -200.0f; // 強制的に上へ跳ねさせる
 		break;
 
+
 		// ▼ ワープ (In -> Out)
 	case MAP_WARPIN:
 		// マップ全体から出口(WARPOUT)を探して移動
@@ -212,23 +297,14 @@ void Player::CheckGimmicks()
 			}
 		}
 		break;
-
-		// ▼ ドローン（ここが少し難しい）
-		// ドローンは「上から踏んだか」「それ以外か」判定が必要なので
-		// CheckTileCollisions の床判定の方に組み込むのが良いかもしれません。
-		// ここでは簡易的に「触れたら減速」だけ書いておきます。
+		// ▼ ドローン
 	case MAP_DRONE:
 		status.vel.x *= 0.8f;
 		break;
 	}
 }
-
-
-
-
 void Player::Draw() {
 	Camera& cam = Camera::Instance();
-	// プレイヤーを四角形で描画
 	Novice::DrawEllipse(
 		static_cast<int>(status.pos.x + cam.x),
 		static_cast<int>(status.pos.y + cam.y),
@@ -238,7 +314,7 @@ void Player::Draw() {
 		0xFFFF00FF,
 		kFillModeSolid
 	);
-}
+
 bool Player::CheckTileCollisions()
 {
 	hitWall_ = false;
