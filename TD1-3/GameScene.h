@@ -20,6 +20,9 @@ public:
     SceneManager();
     ~SceneManager();
 
+    // ステージセレクト用変数
+    int currentStageNo_ = 0;
+
     // 更新 / 描画
     void Update(char* keys, char* preKeys);
     void Draw();
