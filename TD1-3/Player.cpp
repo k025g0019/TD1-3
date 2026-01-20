@@ -6,7 +6,6 @@
 int playerHitMusic = -1;
 #include <cmath> // fabsf
 
-
 Player::Player()
 {
     // 振動機能の初期化
@@ -40,28 +39,23 @@ void Player::Initialize()
     status.pos = { 50.0f, 60.0f };
     status.vel = { 250.0f, 0.0f };   // px/s
     status.radius = 25.0f;
-
-
     if (playerHitMusic == -1)
     {
-        playerHitMusic = Novice::LoadAudio("./Resource/Music/HitPlayer.mp3");
+     //   playerHitMusic = Novice::LoadAudio("./Resource/Music/HitPlayer.mp3");
     }
 }
 
 void Player::DoHitStop(int frames) {
     HitStop::Instance().Start(frames);             // 時間停止
     Camera::Instance().StartShake(frames, 10.0f);   // 演出として画面揺れ
-    Novice::PlayAudio(playerHitMusic, false, 1); // ヒット音再生
-    if (vibration) vibration->runPattern(PATTERN_EXPLOSION_DAMAGE);
+   // Novice::PlayAudio(playerHitMusic, false, 1); // ヒット音再生
+    //if (vibration) vibration->runPattern(PATTERN_EXPLOSION_DAMAGE);
 }
 
 void Player::Update() {
     if (vibration) vibration->Update();
     const float dt = 1.0f / 60.0f;
     Camera::Instance().Follow(status.pos.x, status.pos.y);
-
-
-
     // =========================
     // エアライダー寄りパラメータ
     // =========================
@@ -111,8 +105,6 @@ void Player::Update() {
     // 速度更新
     // =========================
     status.vel.x += acc.x * dt;
-    status.vel.y += acc.y * dt;
-
 	// 速度上限
 	if (status.vel.x > maxSpeedX) status.vel.x = maxSpeedX;
 	if (status.vel.x < -maxSpeedX) status.vel.x = -maxSpeedX;

@@ -151,8 +151,8 @@ int LoadMapLDtk(const char* filePath)
 		// 見た目（AutoLayer / Tiles）
 		// ============================
 		// ============================
-// 見た目タイル（Tiles / AutoLayer）
-// ============================
+　　// 見た目タイル（Tiles / AutoLayer）
+　　// ============================
 		cJSON* tiles = cJSON_GetObjectItem(layer, "gridTiles");
 		if (!tiles)
 		{
@@ -215,18 +215,14 @@ static void DrawTile(int x, int y, int tileIndex)
 		0xFFFFFFFF
 	);
 }
-
-// ============================
-// マップ描画
-// ============================
 // ============================
 // マップ描画
 // ============================
 void DrawMapChips(void)
 {
 	Camera& cam = Camera::Instance();
-
-	for (int y = 0; y < MAP_HEIGHT; y++) {
+	for (int y = 0; y < MAP_HEIGHT; y++) 
+	{		
 		for (int x = 0; x < MAP_WIDTH; x++)
 		{
 			int tile = gVisualMap[y][x];
@@ -246,12 +242,11 @@ void DrawMapChips(void)
 				);*/
 				DrawTile(dx, dy, tile);
 			}
-
-
 		}
 	}
 
 }
+
 void DrawEntities()
 {
 	Camera& cam = Camera::Instance();
@@ -265,11 +260,11 @@ void DrawEntities()
 
 		if (strcmp(gEntities[i].name, "Player") == 0)
 		{
-			tex = gPlayerTex;
+			tex = -1;
 		}
 		else if (strcmp(gEntities[i].name, "Entity") == 0)
 		{
-			tex = gEnemyTex;
+			tex = -1;
 		}
 
 		if (tex >= 0)
