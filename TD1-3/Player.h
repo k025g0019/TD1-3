@@ -5,10 +5,10 @@
 #include "Vibration.h"
 class Player {
 public:
-	struct PlayerStatus 
+	struct PlayerStatus
 	{
 		Vector2 pos = { 0.0f,0.0f };
-		Vector2 vel = {0.0f,0.0f};
+		Vector2 vel = { 0.0f,0.0f };
 		float radius = 25.0f;
 	};
 	Vibration* vibration; // 破壊時振動
@@ -23,6 +23,7 @@ public:
 	void Draw();
 	void DoHitStop(int frames);
 	bool CheckTileCollisions();
+	Player(); ~Player();
 private:
 	bool hitWall_ = false;
 };
