@@ -378,8 +378,8 @@ static void DrawTile(int x, int y, int tileIndex)
 void DrawMapChips(void)
 {
 	Camera& cam = Camera::Instance();
-	for (int y = 0; y < MAP_HEIGHT; y++) 
-	{		
+	for (int y = 0; y < MAP_HEIGHT; y++)
+	{
 		for (int x = 0; x < MAP_WIDTH; x++)
 		{
 			int tile = gVisualMap[y][x];
