@@ -510,18 +510,47 @@ void SceneManager::Update(char* keys, char* preKeys) {
 			}
 		}
 
-		// ----------------------------------------------------------
-		// 決定処理
-		// ----------------------------------------------------------
-		if ((keys[DIK_SPACE] && !preKeys[DIK_SPACE]) ||
-			(keys[DIK_RETURN] && !preKeys[DIK_RETURN]) ||
-			Novice::IsTriggerButton(0, kPadButton10) ||
-			Novice::IsTriggerMouse(0)) // 左クリック
-		{
-			char filePath[64];
-			sprintf_s(filePath, "./Map/Map%d.LDtk", currentStageNo_ + 1);
 
-			LoadMapLDtk(filePath);
+        { // スコープを明示
+            // --- ボタンクリック判定 ---
+            if (Novice::IsTriggerMouse(0)) {
+                if (pauseButtons_[0].IsHovered(mx, my)) {
+                    currentScene_ = SceneType::PLAY;  // Resume: フェードなしで即時再開
+                }
+                if (pauseButtons_[1].IsHovered(mx, my)) {
+                    StartFade(SceneType::TITLE);      // Retry: TITLEへ
+                }
+
+            }
+            Novice::GetMousePosition(&mx, &my);
+
+            // フェード処理
+            if (isFading_)
+            {
+                if (fadeOut_)
+                {
+                    fadeAlpha_ += kFadeSpeed_;
+                    if (fadeAlpha_ >= 255)
+                    {
+                        fadeAlpha_ = 255;
+                        currentScene_ = nextScene_;
+                        fadeOut_ = false;
+                    }
+                }
+                else
+                {
+                    fadeAlpha_ -= kFadeSpeed_;
+                    if (fadeAlpha_ <= 0)
+                    {
+                        fadeAlpha_ = 0;
+                        isFading_ = false;
+                    }
+                }
+                return;
+            }
+
+            switch (currentScene_)
+            {
 
 			player_->Initialize();
 			previousScene_ = SceneType::STAGESELECT;
