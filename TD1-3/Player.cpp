@@ -6,10 +6,13 @@
 int playerHitMusic = -1;
 #include <cmath> // fabsf
 
+float  Player::EaseInBounce(float t) {
+	return t * t * (3.0f - 2.0f * t);
+}
 Player::Player()
 {
-    // 振動機能の初期化
-    vibration = new Vibration(0);
+	// 振動機能の初期化
+	vibration = new Vibration(0);
 }
 bool CircleRectHit(
 	float cx, float cy, float cr,
@@ -28,83 +31,108 @@ bool CircleRectHit(
 
 Player::~Player()
 {
-    if (vibration) {
-        delete vibration;
-        vibration = nullptr;
-    }
+	if (vibration) {
+		delete vibration;
+		vibration = nullptr;
+	}
 }
 
 void Player::Initialize()
 {
-    status.pos = { 50.0f, 60.0f };
-    status.vel = { 250.0f, 0.0f };   // px/s
-    status.radius = 25.0f;
-    if (playerHitMusic == -1)
-    {
-     //   playerHitMusic = Novice::LoadAudio("./Resource/Music/HitPlayer.mp3");
-    }
+	status.pos = { 50.0f, 60.0f };
+	status.vel = { 250.0f, 0.0f };   // px/s
+	status.radius = 15.0f;
+	JumpIndex = 5;
+	jumpTimer = 0;
+	jumpAvailable = false;
+	easeEndFrame = 240.0f;
+	if (playerHitMusic == -1)
+	{
+		playerHitMusic = Novice::LoadAudio("./Resource/Music/HitPlayer.mp3");
+	}
 }
 
 void Player::DoHitStop(int frames) {
-    HitStop::Instance().Start(frames);             // 時間停止
-    Camera::Instance().StartShake(frames, 10.0f);   // 演出として画面揺れ
-   // Novice::PlayAudio(playerHitMusic, false, 1); // ヒット音再生
-    //if (vibration) vibration->runPattern(PATTERN_EXPLOSION_DAMAGE);
+	HitStop::Instance().Start(frames);             // 時間停止
+	Camera::Instance().StartShake(frames, 10.0f);   // 演出として画面揺れ
+	Novice::PlayAudio(playerHitMusic, false, 1); // ヒット音再生
+	if (vibration) vibration->runPattern(PATTERN_EXPLOSION_DAMAGE);
 }
 
 void Player::Update() {
-    if (vibration) vibration->Update();
-    const float dt = 1.0f / 60.0f;
-    Camera::Instance().Follow(status.pos.x, status.pos.y);
-    // =========================
-    // エアライダー寄りパラメータ
-    // =========================
-    const float gravity = 1000.0f;
-    const float forwardAccel = 1200.0f;
-    const float dragX = 1.8f;
-    const float dragY = 1.2f;
-    const float liftK = 3.2f;
-    const float liftMaxRate = 0.99f;
-    const float diveExtraDown = 900.0f;
-    const float diveLiftRate = 0.35f;
-    const float maxSinkGlide = 260.0f;
-    const float maxSpeedX = 1000.0f;
-    const float maxSpeedY = 1600.0f;
+	if (vibration) vibration->Update();
+	const float dt = 1.0f / 60.0f;
+	Camera::Instance().Follow(status.pos.x, status.pos.y);
 
-    // =========================
-    // 入力
-    // =========================
-    const bool isDive = Novice::CheckHitKey(DIK_SPACE);
+	if (isWarpCooldown_) {
+		warpCooldownTimer_--;
+		if (warpCooldownTimer_ <= 0) {
+			isWarpCooldown_ = false;
+		}
+	}
 
-    // =========================
-    // 加速度計算
-    // =========================
-    Vector2 acc = { 0.0f, 0.0f };
 
-    acc.x += forwardAccel; // 前進
-    acc.y += gravity;      // 重力
+	// =========================
+	// エアライダー寄りパラメータ
+	// =========================
+	const float gravity = 800.0f;
+	const float forwardAccel = 500.0f;
+	const float dragX = 2.2f;
+	const float dragY = 1.6f;
+	const float liftK = 3.2f;
+	const float liftMaxRate = 0.99f;
+	const float diveExtraDown = 900.0f;
+	const float diveLiftRate = 0.75f;
+	const float maxSinkGlide = 200.0f;
+	const float maxSpeedX = 550.0f;
+	const float maxSpeedY = 1600.0f;
 
-    // 揚力計算
-    float speedX = fabsf(status.vel.x);
-    float lift = liftK * speedX;
-    float liftMax = gravity * liftMaxRate;
-    if (lift > liftMax) lift = liftMax;
+	// =========================
+	// 入力
+	// =========================
 
-    if (isDive) {
-        lift *= diveLiftRate;
-        acc.y += diveExtraDown;
-    }
+	const bool isDive = Novice::CheckHitKey(DIK_SPACE);
 
-    acc.y -= lift;
 
-    // 空気抵抗
-    acc.x += -dragX * status.vel.x;
-    acc.y += -dragY * status.vel.y;
+	if (jumpAvailable) {
+		jumpTimer++;
+		if (JumpIndex <= jumpTimer) {
+			jumpAvailable = false;
+		}
+	}
 
-    // =========================
-    // 速度更新
-    // =========================
-    status.vel.x += acc.x * dt;
+
+	// =========================
+	// 加速度計算
+	// =========================
+	Vector2 acc = { 0.0f, 0.0f };
+
+	acc.x += forwardAccel * moveDirX; // 前進
+	acc.y += gravity;      // 重力
+
+	// 揚力計算
+	float speedX = fabsf(status.vel.x);
+	float lift = liftK * speedX;
+	float liftMax = gravity * liftMaxRate;
+	if (lift > liftMax) lift = liftMax;
+
+	if (isDive) {
+		lift *= diveLiftRate;
+		acc.y += diveExtraDown;
+	}
+
+	acc.y -= lift;
+
+	// 空気抵抗
+	acc.x += -dragX * status.vel.x;
+	acc.y += -dragY * status.vel.y;
+
+	// =========================
+	// 速度更新
+	// =========================
+	status.vel.x += acc.x * dt;
+	status.vel.y += acc.y * dt;
+
 	// 速度上限
 	if (status.vel.x > maxSpeedX) status.vel.x = maxSpeedX;
 	if (status.vel.x < -maxSpeedX) status.vel.x = -maxSpeedX;
@@ -112,7 +140,7 @@ void Player::Update() {
 	if (status.vel.y < -maxSpeedY) status.vel.y = -maxSpeedY;
 
 	// 滑空中は沈下速度を制限（エアライドっぽい“伸び”）
-	if (!isDive) {
+	if (!isDive && !jumpAvailable) {
 		if (status.vel.y > maxSinkGlide) status.vel.y = maxSinkGlide;
 	}
 	times++;
@@ -132,7 +160,21 @@ void Player::Update() {
 
 	const float restitution = 0.55f;
 	const float friction = 0.85f;
+	for (int i = 0; i < gEntityCount; i++) {
+		if (gEntities[i].types == ENTITY_OpenSesame) {
+			if (isEasingActive) {
+				easeFrame += 1.0f;
+				if (easeFrame >= easeEndFrame) {
+					isEasingActive = false;
+					easeFrame = easeEndFrame;
+				}
+				float t = easeFrame / easeEndFrame;
+				float easeValue = EaseInBounce(t);
+				gEntities[i].y = (int)(gEntities[i].y + (200.0f * easeValue));
+			}
+		}
 
+	}
 	// 左右
 	if (status.pos.x <= halfSize) {
 		status.pos.x = halfSize;
@@ -166,8 +208,8 @@ void Player::Update() {
 	for (int i = 0; i < gEntityCount; i++)
 	{
 		// Entity 矩形
-		float ex = (float)gEntities[i].x;
-		float ey = (float)gEntities[i].y;
+		float ex = (float)gEntities[i].x - gEntities[i].w / 2;
+		float ey = (float)gEntities[i].y - gEntities[i].h / 2;
 		float ew = (float)gEntities[i].w;
 		float eh = (float)gEntities[i].h;
 
@@ -176,6 +218,11 @@ void Player::Update() {
 
 		// Entity 上面
 		float entityTop = ey;
+		float nearestX = fmaxf(ex, fminf(status.pos.x, ex + ew));
+		float nearestY = fmaxf(ey, fminf(status.pos.y, ey + eh));
+
+		float dx = status.pos.x - nearestX;
+		float dy = status.pos.y - nearestY;
 
 		// ▼ 円 vs 矩形
 		if (CircleRectHit(
@@ -185,18 +232,137 @@ void Player::Update() {
 			ex, ey, ew, eh
 		))
 		{
-			// ▼ 上から踏んだときだけ
-			if (status.vel.y > 0.0f && playerBottom < entityTop + 10.0f)
+			switch (gEntities[i].types)
 			{
-				// トランポリン反発
-				status.vel.y = -fabsf(status.vel.y) * 1.2f - 300.0f;
+			case ENTITY_Entity:
+				// トランポリン
+				// ▼ 上から踏んだときだけ
+				if (status.vel.y > 0.0f && playerBottom < entityTop + 10.0f)
+				{
+					// トランポリン反発
+					status.vel.y = -fabsf(status.vel.y) * 1.2f - 300.0f;
 
-				// めり込み防止（少し上に戻す）
-				status.pos.y = entityTop - status.radius;
+					// めり込み防止（少し上に戻す）
+					status.pos.y = entityTop - status.radius;
+					jumpAvailable = true;
+					// ヒット演出
+					DoHitStop(6);
+				}
+				break;
 
-				// ヒット演出
-				DoHitStop(6);
+			case ENTITY_Trampoline_R:
+				if (status.vel.y > 0.0f && playerBottom < entityTop + 10.0f)
+				{
+					status.vel.y = -fabsf(status.vel.y) * 1.2f - 300.0f;
+					moveDirX *= -1.0f;
+					jumpAvailable = true;
+					// めり込み防止（少し上に戻す）
+					status.pos.y = entityTop - status.radius;
+					status.vel.x = -fabsf(status.vel.x); // 右へ
+					// ヒット演出
+					DoHitStop(6);
+				}
+				break;
+			case ENTITY_Trampoline_L:
+
+				if (status.vel.y > 0.0f && playerBottom < entityTop + 10.0f)
+				{
+					status.vel.y = -fabsf(status.vel.y) * 1.2f - 300.0f;
+					moveDirX *= -1.0f;
+					jumpAvailable = true;
+					// めり込み防止（少し上に戻す）
+					status.pos.y = entityTop - status.radius;
+					status.vel.x = fabsf(status.vel.x); // 右へ
+					// ヒット演出
+					DoHitStop(6);
+				}
+				break;
+			case ENTITY_SWITCHR:
+				// 右方向へ進行中のみ
+				if (moveDirX == -1.0f)
+				{
+					// 横から接触していて、かつスイッチの右側から当たった
+					if (fabsf(dx) > fabsf(dy) && dx > 0.0f)
+					{
+						// めり込み防止
+						status.pos.x = ex + ew + status.radius;
+
+						// 進行方向反転
+						moveDirX = 1.0f;
+						status.vel.x = fabsf(status.vel.x); // 右へ
+						DoHitStop(4);
+						if (!isEasingActive) {
+							isEasingActive = true;
+							easeFrame = 0.0f;
+						}
+					}
+				}
+
+				break;
+			case ENTITY_OpenSesame:
+
+				status.pos.x = ex - (ew / 2) + status.radius;
+				break;
+			case ENTITY_BREAKSWALL:
+				if (status.vel.y > 100.0f && playerBottom < entityTop + 10.0f)
+				{
+					status.vel.y -= 100;
+					// 壁破壊演出
+    					DoHitStop(8);
+					// 壁を消す
+					gEntities[i].y = -1000; // 画面外へ移動させるなど
+				}
+				break;
+			case ENTITY_Drawmn:
+				// ▼ 上から踏んだときだけ
+				if (status.vel.y > 0.0f && playerBottom < entityTop + 10.0f)
+				{
+					// トランポリン反発
+					status.vel.y = -fabsf(status.vel.y) * 1.2f - 300.0f;
+
+					// めり込み防止（少し上に戻す）
+					status.pos.y = entityTop - status.radius;
+					jumpAvailable = true;
+					// ヒット演出
+					DoHitStop(6);
+				}
+				break;
+			case ENTITY_WARP:
+			{
+				// クールタイム中は無視
+				if (isWarpCooldown_) break;
+
+				int srcWarpId = gEntities[i].warpId;
+				if (srcWarpId < 0) break;
+
+				// 同じ warpId の別 Warp を探す
+				for (int j = 0; j < gEntityCount; j++)
+				{
+					if (i == j) continue;
+
+					if (gEntities[j].types != ENTITY_WARP) continue;
+					if (gEntities[j].warpId != srcWarpId) continue;
+
+					// ワープ実行
+					status.pos.x = (float)gEntities[j].x;
+					status.pos.y = (float)gEntities[j].y;
+
+
+
+					// 無限往復防止
+					isWarpCooldown_ = true;
+					warpCooldownTimer_ = 30; // 0.5 秒
+
+
+					return;
+				}
 			}
+			break;
+
+			default:
+				break;
+			}
+
 		}
 
 
