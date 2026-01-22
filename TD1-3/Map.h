@@ -49,7 +49,8 @@ extern int gCollisionMap[MAP_HEIGHT][MAP_WIDTH];
 extern int gChipSheetHandle;
 
 void InitializeMap();
-int  LoadMapLDtk(const char* filePath);
+int LoadMapLDtk(const char* filePath, int levelIndex);
+
 void DrawMapChips(void);
 void DrawEntities(void);
 
