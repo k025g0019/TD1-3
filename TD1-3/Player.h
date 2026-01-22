@@ -26,8 +26,6 @@ public:
 	int Accelerated = 0;
 	float moveDirX = 1.0f; // +1:右, -1:左
 	float sinParam[2] = { 0.5f, 0.5f }; // 待機中上下揺れ制御用パラメータ
-	// ギミック判定用の関数を追加
-	void CheckGimmicks();
 	int times = 0; // 経過フレーム数
 	void Initialize();
 	void Update();
