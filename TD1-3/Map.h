@@ -13,11 +13,30 @@
 
 #define MAX_ENTITIES 128
 
+enum EntityType
+{
+    ENTITY_Entity,
+    ENTITY_Trampoline_R,
+    ENTITY_Trampoline_L,
+    ENTITY_UNKNOWN,
+    ENTITY_SWITCHR,
+    ENTITY_OpenSesame,
+    ENTITY_BREAKSWALL,
+    ENTITY_Drawmn,
+    ENTITY_WARP        
+};
+
 typedef struct Entity
 {
     char name[32];
+    EntityType types; 
     int x, y;
     int w, h;
+    int startX, startY;
+    int endX, endY;
+    float timer;
+    float easeFrame;
+    int warpId;
 } Entity;
 
 // ★ ヘッダは extern のみ
@@ -34,6 +53,7 @@ int  LoadMapLDtk(const char* filePath);
 void DrawMapChips(void);
 void DrawEntities(void);
 
+void UpdateEntity();
 enum MapType {
     MAP_EMPTY = 0,
     MAP_WALL = 1,

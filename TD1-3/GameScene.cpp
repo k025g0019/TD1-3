@@ -562,13 +562,13 @@ void SceneManager::Update(char* keys, char* preKeys) {
                 }
                 break;
 
-            case SceneType::PLAY:
-                HitStop::Instance().Update();
-                player_->Update();
-
-                // デバッグ用シーン遷移
-                if (keys[DIK_2] && !preKeys[DIK_2]) StartFade(SceneType::GAMEOVER);
-                if (keys[DIK_1] && !preKeys[DIK_1]) StartFade(SceneType::CLEAR);
+    case SceneType::PLAY:
+        HitStop::Instance().Update();
+        player_->Update();
+        UpdateEntity();
+        // デバッグ用シーン遷移
+        if (keys[DIK_2] && !preKeys[DIK_2]) StartFade(SceneType::GAMEOVER);
+        if (keys[DIK_1] && !preKeys[DIK_1]) StartFade(SceneType::CLEAR);
 
                 // PAUSE 画面へ
                 if ((keys[DIK_P] && !preKeys[DIK_P]) || Novice::IsTriggerButton(0, kPadButton4))

@@ -3,8 +3,10 @@
 #include <string.h>
 #include "Map.h"
 #include "cJSON.h"
+#include <math.h>
+#define M_PI 3.1415926535897932384626433832795028841971f
 int gMap[MAP_HEIGHT][MAP_WIDTH];
-int Number=0;
+int Number = 0;
 Entity gEntities[MAX_ENTITIES];
 int gEntityCount = 0;
 int gEnemyTex = -1;
@@ -16,6 +18,10 @@ int gVisualMap[MAP_HEIGHT][MAP_WIDTH];
 int gCollisionMap[MAP_HEIGHT][MAP_WIDTH];
 int gChipSheetHandle = -1;
 
+float easeInOutElastic(float t) {
+	return -(cosf(M_PI * t) - 1) / 2;
+
+}
 // ============================
 // タイルシート最大数
 // ============================
@@ -40,6 +46,7 @@ void InitializeMap()
 			gCollisionMap[y][x] = MAP_EMPTY;
 		}
 	gEntityCount = 0;
+
 }
 
 // ============================
@@ -135,13 +142,124 @@ int LoadMapLDtk(const char* filePath)
 					id,
 					_TRUNCATE
 				);
+				gEntities[gEntityCount].easeFrame = 0.0f;
 
 				gEntities[gEntityCount].x = x;
 				gEntities[gEntityCount].y = y;
 				gEntities[gEntityCount].w = w;
 				gEntities[gEntityCount].h = h;
 
+				EntityType types = ENTITY_UNKNOWN;
+
+				if (strcmp(id, "Entity") == 0)
+				{
+					types = ENTITY_Entity;
+				}
+				else if (strcmp(id, "Diagonal_Trampoline_Right") == 0)
+				{
+					types = ENTITY_Trampoline_R;
+				}
+				else if (strcmp(id, "Diagonal_Trampoline_Left") == 0)
+				{
+					types = ENTITY_Trampoline_L;
+				}
+				else if (strcmp(id, "SwitchR") == 0)
+				{
+					types = ENTITY_SWITCHR;
+				}
+				else if (strcmp(id, "Open_sesame") == 0)
+				{
+					types = ENTITY_OpenSesame;
+				}
+				else if (strcmp(id, "BreaksWall") == 0)
+				{
+					types = ENTITY_BREAKSWALL;
+				}
+				else if (strcmp(id, "Drawn") == 0)
+				{
+					types = ENTITY_Drawmn;
+				}
+				else if (strcmp(id, "Warp") == 0)
+				{
+					types = ENTITY_WARP;
+				}
+
+				// ★ 同じ index に全部セット
+				strncpy_s(
+					gEntities[gEntityCount].name,
+					sizeof(gEntities[gEntityCount].name),
+					id,
+					_TRUNCATE
+				);
+
+				gEntities[gEntityCount].x = x;
+				gEntities[gEntityCount].y = y;
+				gEntities[gEntityCount].w = w;
+				gEntities[gEntityCount].h = h;
+				gEntities[gEntityCount].types = types;
+
+				gEntities[gEntityCount].startX = x;
+				gEntities[gEntityCount].startY = y;
+				gEntities[gEntityCount].endX = x;
+				gEntities[gEntityCount].endY = y;
+				gEntities[gEntityCount].timer = 0.0f;
+				gEntities[gEntityCount].warpId = -1; // デフォルト
+
+				cJSON* fields = cJSON_GetObjectItem(ent, "fieldInstances");
+				if (fields)
+				{
+					int fieldCount = cJSON_GetArraySize(fields);
+					for (int f = 0; f < fieldCount; f++)
+					{
+						cJSON* field = cJSON_GetArrayItem(fields, f);
+
+						const char* fname =
+							cJSON_GetObjectItem(field, "__identifier")->valuestring;
+
+						cJSON* value = cJSON_GetObjectItem(field, "__value");
+						if (!value) continue;
+
+						// --------------------
+						// StartPos (XY)
+						// --------------------
+
+						// --------------------
+						// EndPos (XY)
+						// --------------------
+						if (strcmp(fname, "EndPos") == 0)
+						{
+							if (!value || cJSON_IsNull(value)) continue;
+
+							gEntities[gEntityCount].endX =
+								cJSON_GetObjectItem(value, "cx")->valueint * TILE_SIZE;
+							gEntities[gEntityCount].endY =
+								cJSON_GetObjectItem(value, "cy")->valueint * TILE_SIZE;
+						}
+
+						// --------------------
+						// Timer (Float)
+						// --------------------
+						else if (strcmp(fname, "Timer") == 0)
+						{
+							if (!value || cJSON_IsNull(value)) continue;
+
+							gEntities[gEntityCount].timer =
+								(float)value->valuedouble;
+						}
+						else if (strcmp(fname, "warpId") == 0)
+						{
+							if (!value || cJSON_IsNull(value)) continue;
+
+							gEntities[gEntityCount].warpId = value->valueint;
+						}
+
+					}
+				}
+
+				// ★ 最後に進める
 				gEntityCount++;
+
+
 			}
 
 			continue; // ★ タイル処理に行かせない
@@ -192,6 +310,42 @@ int LoadMapLDtk(const char* filePath)
 	cJSON_Delete(root);
 	return 1;
 }
+
+void UpdateEntity()
+{
+	for (int i = 0; i < gEntityCount; i++)
+	{
+		Entity& entity = gEntities[i];
+
+		if (entity.types != ENTITY_Drawmn) continue;
+		if (entity.timer <= 0.0f) continue;
+
+		// フレーム加算
+		entity.easeFrame += 1.0f;
+
+		// 往復周期
+		float cycle = entity.timer * 2.0f;
+
+		float t = fmodf(entity.easeFrame, cycle);
+
+		// 折り返し
+		if (t > entity.timer)
+		{
+			t = cycle - t;
+		}
+
+		// 0～1
+		float norm = t / entity.timer;
+
+		float easeT = easeInOutElastic(norm);
+
+		entity.x = (int)(entity.startX +
+			(entity.endX - entity.startX) * easeT);
+		entity.y = (int)(entity.startY +
+			(entity.endY - entity.startY) * easeT);
+	}
+}
+
 
 // ============================
 // タイル描画
@@ -270,8 +424,8 @@ void DrawEntities()
 		if (tex >= 0)
 		{
 			Novice::DrawSprite(
-				dx,
-				dy,
+				dx - gEntities[i].w / 2,
+				dy - gEntities[i].h / 2,
 				tex,
 				1.0f,
 				1.0f,
@@ -283,8 +437,8 @@ void DrawEntities()
 		{
 			// 未設定エンティティは赤枠表示
 			Novice::DrawBox(
-				dx,
-				dy,
+				dx - gEntities[i].w / 2,
+				dy - gEntities[i].h / 2,
 				gEntities[i].w,
 				gEntities[i].h,
 				0.0f,
