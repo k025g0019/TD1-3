@@ -139,7 +139,7 @@ void DrawStageMap(void)
 // ------------------------------------------------------------
 // ▼ 更新処理
 // ------------------------------------------------------------
-void SceneManager::Update(char* keys, char* preKeys) 
+void SceneManager::Update(char* keys, char* preKeys)
 {
 
 	int mx, my;
@@ -150,7 +150,7 @@ void SceneManager::Update(char* keys, char* preKeys)
 	static int preMy = 0;
 	bool isMouseMoved = false;
 
-	if (mx != preMx || my != preMy) 
+	if (mx != preMx || my != preMy)
 	{
 		isMouseMoved = true;
 	}
@@ -160,22 +160,22 @@ void SceneManager::Update(char* keys, char* preKeys)
 	//===========================
 	// ▼ フェード処理
 	//===========================
-	if (isFading_) 
+	if (isFading_)
 	{
-		if (fadeOut_) 
+		if (fadeOut_)
 		{
 			fadeAlpha_ += kFadeSpeed_;
-			if (fadeAlpha_ >= 255) 
+			if (fadeAlpha_ >= 255)
 			{
 				fadeAlpha_ = 255;
 				currentScene_ = nextScene_;
 				fadeOut_ = false;
 			}
 		}
-		else 
+		else
 		{
 			fadeAlpha_ -= kFadeSpeed_;
-			if (fadeAlpha_ <= 0) 
+			if (fadeAlpha_ <= 0)
 			{
 				fadeAlpha_ = 0;
 				isFading_ = false;
@@ -187,7 +187,7 @@ void SceneManager::Update(char* keys, char* preKeys)
 	//===========================
 	// ▼ シーン別更新処理
 	//===========================
-	switch (currentScene_) 
+	switch (currentScene_)
 	{
 
 	case SceneType::TITLE:
@@ -251,7 +251,7 @@ void SceneManager::Update(char* keys, char* preKeys)
 
 		// --- 3. マウスホイール ---
 		int wheel = Novice::GetWheel();
-		if (wheel > 0) 
+		if (wheel > 0)
 		{
 			moveUp = true;   // 奥に回したら戻る（上）
 		}
@@ -316,7 +316,7 @@ void SceneManager::Update(char* keys, char* preKeys)
 				topRow = currentRow - (kRows - 1);
 			}
 
-			for (int r = 0; r < kRows; r++) 
+			for (int r = 0; r < kRows; r++)
 			{
 				for (int c = 0; c < kCols; c++) 
 				{
@@ -343,17 +343,16 @@ void SceneManager::Update(char* keys, char* preKeys)
 		if ((keys[DIK_SPACE] && !preKeys[DIK_SPACE]) ||
 			(keys[DIK_RETURN] && !preKeys[DIK_RETURN]) ||
 			Novice::IsTriggerButton(0, kPadButton10) ||
-			Novice::IsTriggerMouse(0)) // 左クリック
+			Novice::IsTriggerMouse(0))
 		{
-			char filePath[64];
-			sprintf_s(filePath, "./Map/Map%d.ldtk", currentStageNo_ + 1);
-
-			LoadMapLDtk(filePath);
+			InitializeMap();
+			LoadMapLDtk("./Map/Map1.ldtk", currentStageNo_);
 
 			player_->Initialize();
 			previousScene_ = SceneType::STAGESELECT;
 			StartFade(SceneType::PLAY);
 		}
+
 	}
 	break;
 
@@ -364,18 +363,18 @@ void SceneManager::Update(char* keys, char* preKeys)
 
 		player_->Update();
 
-		if (player_->CheckTileCollisions())
+		/*if (player_->CheckTileCollisions())
 		{
 			StartFade(SceneType::GAMEOVER);
-		}
+		}*/
 
 		// デバッグ: 2でゲームオーバー
 		if (keys[DIK_2] && !preKeys[DIK_2]) StartFade(SceneType::GAMEOVER);
 
 		// ★デバッグ: 1でクリア
-		if (keys[DIK_1] && !preKeys[DIK_1]) 
+		if (keys[DIK_1] && !preKeys[DIK_1])
 		{
-			if (currentStageNo_ >= 0 && currentStageNo_ < kMaxStages) 
+			if (currentStageNo_ >= 0 && currentStageNo_ < kMaxStages)
 			{
 				gStageClearFlags[currentStageNo_] = true;
 			}
@@ -383,7 +382,7 @@ void SceneManager::Update(char* keys, char* preKeys)
 		}
 
 		// PAUSE画面へ
-		if ((keys[DIK_P] && !preKeys[DIK_P]) || Novice::IsTriggerButton(0, kPadButton4)) 
+		if ((keys[DIK_P] && !preKeys[DIK_P]) || Novice::IsTriggerButton(0, kPadButton4))
 		{
 			currentScene_ = SceneType::PAUSE;
 		}
@@ -430,7 +429,7 @@ void SceneManager::Update(char* keys, char* preKeys)
 		pauseCursor_ = (pauseCursor_ + 3) % 3;
 
 		// 決定ボタン
-		if (Novice::IsTriggerButton(0, kPadButton10)) 
+		if (Novice::IsTriggerButton(0, kPadButton10))
 		{
 			if (pauseCursor_ == 0)
 			{
@@ -440,7 +439,7 @@ void SceneManager::Update(char* keys, char* preKeys)
 			{
 				StartFade(SceneType::TITLE);
 			}
-			if (pauseCursor_ == 2) 
+			if (pauseCursor_ == 2)
 			{
 				previousScene_ = SceneType::PAUSE;
 				StartFade(SceneType::TITLE);
@@ -448,7 +447,7 @@ void SceneManager::Update(char* keys, char* preKeys)
 		}
 
 		// マウス判定
-		if (Novice::IsTriggerMouse(0)) 
+		if (Novice::IsTriggerMouse(0))
 		{
 			if (pauseButtons_[0].IsHovered(mx, my))
 			{

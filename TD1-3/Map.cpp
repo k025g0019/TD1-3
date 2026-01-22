@@ -52,7 +52,7 @@ void InitializeMap()
 // ============================
 // LDtk 読み込み
 // ============================
-int LoadMapLDtk(const char* filePath)
+int LoadMapLDtk(const char* filePath, int levelIndex)
 {
 	FILE* fp = NULL;
 	if (fopen_s(&fp, filePath, "rb") != 0 || !fp)
@@ -72,9 +72,15 @@ int LoadMapLDtk(const char* filePath)
 	if (!root) return 0;
 
 	cJSON* levels = cJSON_GetObjectItem(root, "levels");
-	cJSON* level = cJSON_GetArrayItem(levels, 0);
-	cJSON* layers = cJSON_GetObjectItem(level, "layerInstances");
+	int levelCount = cJSON_GetArraySize(levels);
 
+	if (levelIndex < 0 || levelIndex >= levelCount) {
+		cJSON_Delete(root);
+		return 0;
+	}
+
+	cJSON* level = cJSON_GetArrayItem(levels, levelIndex);
+	cJSON* layers = cJSON_GetObjectItem(level, "layerInstances");
 	int layerCount = cJSON_GetArraySize(layers);
 	for (int i = 0; i < layerCount; i++)
 	{
