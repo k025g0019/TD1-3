@@ -23,13 +23,13 @@ enum EntityType
     ENTITY_OpenSesame,
     ENTITY_BREAKSWALL,
     ENTITY_Drawmn,
-    ENTITY_WARP        
+    ENTITY_WARP
 };
 
 typedef struct Entity
 {
     char name[32];
-    EntityType types; 
+    EntityType types;
     int x, y;
     int w, h;
     int startX, startY;
