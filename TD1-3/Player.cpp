@@ -203,8 +203,6 @@ void Player::Update() {
 		DoHitStop(10);  // ← 6フレームだけ時間停止
 	}
 
-	// ★ギミックとの判定（効果発動）
-	CheckGimmicks();
 	for (int i = 0; i < gEntityCount; i++)
 	{
 		// Entity 矩形
@@ -371,69 +369,6 @@ void Player::Update() {
 
 }
 
-// --------------------------------------------------------
-// ギミック判定（修正版）
-// プレイヤーの中心座標にあるタイルを判定します
-// --------------------------------------------------------
-
-void Player::CheckGimmicks()
-{
-
-	// プレイヤーの中心座標に対応するマップチップ番号を取得
-	int cX = (int)(status.pos.x / TILE_SIZE);
-	int cY = (int)(status.pos.y / TILE_SIZE);
-
-	// 配列外参照防止
-	if (cX < 0 || cX >= MAP_WIDTH || cY < 0 || cY >= MAP_HEIGHT) return;
-
-	int tile = gCollisionMap[cY][cX];
-
-	switch (tile)
-	{
-		// ▼ 危険地帯
-	case MAP_DANGER:
-		// ミス処理へ（初期位置に戻すなど）
-		// Initialize();
-		break;
-
-		// ▼ ゴール
-	case MAP_GOAL:
-		// シーン遷移フラグを立てるなど
-		break;
-
-		// ▼ 鳥（減速）
-	case MAP_BIRD:
-		status.vel.x *= 0.5f; // 速度を半分にする
-		status.vel.y *= 0.5f;
-		break;
-
-		// ▼ トランポリン
-	case MAP_TRAMPOLINE:
-		status.vel.y = -200.0f; // 強制的に上へ跳ねさせる
-		break;
-
-
-		// ▼ ワープ (In -> Out)
-	case MAP_WARPIN:
-		// マップ全体から出口(WARPOUT)を探して移動
-		for (int y = 0; y < MAP_HEIGHT; y++)
-		{
-			for (int x = 0; x < MAP_WIDTH; x++)
-			{
-				if (gCollisionMap[y][x] == MAP_WARPOUT) {
-					status.pos.x = (float)(x * TILE_SIZE) + status.radius;
-					status.pos.y = (float)(y * TILE_SIZE) + status.radius;
-					return; // 見つかったら即終了
-				}
-			}
-		}
-		break;
-		// ▼ ドローン
-	case MAP_DRONE:
-		status.vel.x *= 0.8f;
-		break;
-	}
-}
 void Player::Draw() {
 	Camera& cam = Camera::Instance();
 	Novice::DrawEllipse(
