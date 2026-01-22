@@ -106,7 +106,7 @@ void DrawStageMap(void)
 	{
 		for (int x = 0; x < MAP_WIDTH; x++)
 		{
-			int id = gMap[y][x];
+			int id = gVisualMap[y][x];
 			if (id == -1) continue;
 
 			int chipIndex = id;
@@ -234,16 +234,16 @@ void SceneManager::Update(char* keys, char* preKeys) {
 			previousScene_ = SceneType::STAGESELECT;
 			StartFade(SceneType::PLAY);
 		}
+		player_->Initialize();
 		break;
 	case SceneType::PLAY:
 
 		HitStop::Instance().Update();
-
-
+		UpdateEntity();
 
 		player_->Update();
 
-		/*if (player_->CheckTileCollisions(gMap)) {
+		/*if (player_->CheckTileCollisions(gVisualMap)) {
 			StartFade(SceneType::GAMEOVER);
 		}*/
 
@@ -709,7 +709,8 @@ void SceneManager::Draw()
 	break;
 
 	case SceneType::PLAY:
-		DrawStageMap();
+		DrawMapChips();
+		DrawEntities();
 		player_->Draw();
 		break;
 
@@ -723,7 +724,8 @@ void SceneManager::Draw()
 
 	case SceneType::PAUSE:
 		// 背景
-		DrawStageMap();
+		DrawMapChips();
+		DrawEntities();
 		player_->Draw();
 		Novice::DrawBox(0, 0, kWindowWidth, kWindowHeight, 0.0f, 0x00000088, kFillModeSolid);
 
