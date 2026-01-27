@@ -194,7 +194,7 @@ void SceneManager::Update(char* keys, char* preKeys)
 		InitializeMap();
 
 		// マウスの左クリック or ボタンで次のシーンへ
-		if (Novice::IsPressMouse(0) || Novice::IsTriggerButton(0, kPadButton10))
+		if (Novice::IsPressMouse(0) || Novice::IsPressButton(0, kPadButton10))
 		{
 			previousScene_ = SceneType::TITLE;
 			StartFade(SceneType::STAGESELECT);
@@ -386,6 +386,8 @@ void SceneManager::Update(char* keys, char* preKeys)
 				Novice::IsTriggerButton(0, kPadButton10) ||
 				Novice::IsTriggerMouse(0))
 			{
+				Camera::Instance().Follow(0, 0);
+
 				InitializeMap();
 				LoadMapLDtk("./Map/Map1.ldtk", currentStageNo_);
 
@@ -405,10 +407,19 @@ void SceneManager::Update(char* keys, char* preKeys)
 
 		player_->Update();
 
+
 		/*if (player_->CheckTileCollisions())
 		{
 			StartFade(SceneType::GAMEOVER);
 		}*/
+		/*if (player_->isGrounded_) {
+			if (abs(player_->status.vel.x) <= 20.0f) {
+				StartFade(SceneType::GAMEOVER);
+			}
+		}*/
+		if (player_->status.pos.x >= 2560.0f) {
+			StartFade(SceneType::CLEAR);
+		}
 
 		// デバッグ: 2でゲームオーバー
 		if (keys[DIK_2] && !preKeys[DIK_2]) StartFade(SceneType::GAMEOVER);
@@ -511,175 +522,176 @@ void SceneManager::Update(char* keys, char* preKeys)
 		break;
 	}
 }
-	// ------------------------------------------------------------
-	// ▼ フェード開始
-	// ------------------------------------------------------------
-	void SceneManager::StartFade(SceneType next)
+// ------------------------------------------------------------
+// ▼ フェード開始
+// ------------------------------------------------------------
+void SceneManager::StartFade(SceneType next)
+{
+	nextScene_ = next;
+	fadeOut_ = true;
+	isFading_ = true;
+	fadeAlpha_ = 0;
+}
+
+// ------------------------------------------------------------
+// ▼ 描画処理
+// ------------------------------------------------------------
+void SceneManager::Draw()
+{
+
+	int mx, my;
+	Novice::GetMousePosition(&mx, &my);
+
+	switch (currentScene_)
 	{
-		nextScene_ = next;
-		fadeOut_ = true;
-		isFading_ = true;
-		fadeAlpha_ = 0;
-	}
 
-	// ------------------------------------------------------------
-	// ▼ 描画処理
-	// ------------------------------------------------------------
-	void SceneManager::Draw()
-	{
-
-		int mx, my;
-		Novice::GetMousePosition(&mx, &my);
-
-		switch (currentScene_)
-		{
-
-		case SceneType::TITLE:
-			Novice::DrawSprite(0, 0, TITLEImage, 1.0f, 1.0f, 0.0f, 0xFFFFFFFF);
-			break;
-
-			// 
-			// ステージセレクトの描画
-		case SceneType::STAGESELECT:
-		{
-			Novice::DrawBox(0, 0, kWindowWidth, kWindowHeight, 0.0f, 0x222244FF, kFillModeSolid);
-			Novice::ScreenPrintf(50, 30, "SELECT STAGE");
-			Novice::ScreenPrintf(50, 50, "WASD / Arrow / Wheel / Mouse : Select");
-			Novice::ScreenPrintf(50, 70, "SPACE / ENTER / PAD-A / Click : Decide");
-
-			// スクロール位置の再計算（表示用）
-			int currentRow = currentStageNo_ / kCols;
-			static int topRow = 0;
-			if (currentRow < topRow) topRow = currentRow;
-			if (currentRow >= topRow + kRows) topRow = currentRow - (kRows - 1);
-
-			// グリッド描画
-			for (int r = 0; r < kRows; r++)
-			{
-				for (int c = 0; c < kCols; c++)
-				{
-					int stageIdx = (topRow + r) * kCols + c;
-					if (stageIdx >= kMaxStages) continue;
-
-					int x = kStartX + c * (kTileW + kGapX);
-					int y = kStartY + r * (kTileH + kGapY);
-
-					// --- 色の決定 ---
-					unsigned int color = 0x444466FF; // 通常色（少し暗い青）
-
-					// クリア済みなら色を変える (シアン)
-					bool isCleared = gStageClearFlags[stageIdx];
-					if (isCleared)
-					{
-						color = 0x00AAAAFF;
-					}
-
-					// 選択中ならさらに目立つ色に (オレンジ)
-					if (stageIdx == currentStageNo_)
-					{
-						color = 0xFFAA00FF;
-						// 選択枠を描画
-						Novice::DrawBox(x - 5, y - 5, kTileW + 10, kTileH + 10, 0.0f, 0xFFFFFFAA, kFillModeSolid);
-					}
-
-					// ボックス描画
-					Novice::DrawBox(x, y, kTileW, kTileH, 0.0f, color, kFillModeSolid);
-
-					// テキスト描画 (白)
-					Novice::ScreenPrintf(x + 20, y + 40, "STAGE %d", stageIdx + 1);
-
-					// クリア済みテキストの表示
-					if (isCleared)
-					{
-						// 右上あたりに「CLEAR!」と表示
-						Novice::ScreenPrintf(x + 100, y + 10, "★CLEAR!");
-					}
-				}
-			}
-
-			// スクロールバー
-			float progress = (float)currentStageNo_ / (float)(kMaxStages - 1);
-			Novice::DrawBox(1200, 150, 10, 490, 0.0f, 0x000000FF, kFillModeSolid);
-			Novice::DrawBox(1200, 150 + (int)(470 * progress), 10, 20, 0.0f, 0xFFFFFFFF, kFillModeSolid);
-		}
+	case SceneType::TITLE:
+		Novice::DrawSprite(0, 0, TITLEImage, 1.0f, 1.0f, 0.0f, 0xFFFFFFFF);
 		break;
 
-		case SceneType::PLAY:
-			DrawMapChips();
-			DrawEntities();
-			player_->Draw();
-			break;
+		// 
+		// ステージセレクトの描画
+	case SceneType::STAGESELECT:
+	{
+		Novice::DrawBox(0, 0, kWindowWidth, kWindowHeight, 0.0f, 0x222244FF, kFillModeSolid);
+		Novice::ScreenPrintf(50, 30, "SELECT STAGE");
+		Novice::ScreenPrintf(50, 50, "WASD / Arrow / Wheel / Mouse : Select");
+		Novice::ScreenPrintf(50, 70, "SPACE / ENTER / PAD-A / Click : Decide");
 
-		case SceneType::CLEAR:
-			Novice::DrawSpriteRect(0, 0, 0, 0, 1280, 720, gameClearImage_, 1.0f, 1.0f, 0.0f, 0xFFFFFFFF);
-			break;
+		// スクロール位置の再計算（表示用）
+		int currentRow = currentStageNo_ / kCols;
+		static int topRow = 0;
+		if (currentRow < topRow) topRow = currentRow;
+		if (currentRow >= topRow + kRows) topRow = currentRow - (kRows - 1);
 
-		case SceneType::GAMEOVER:
-			Novice::DrawSpriteRect(0, 0, 0, 0, 1280, 720, gameOverImage_, 1.0f, 1.0f, 0.0f, 0xFFFFFFFF);
-			break;
-
-		case SceneType::PAUSE:
-			// 背景
-			DrawMapChips();
-			DrawEntities();
-			player_->Draw();
-			Novice::DrawBox(0, 0, kWindowWidth, kWindowHeight, 0.0f, 0x00000088, kFillModeSolid);
-
-			for (int i = 0; i < kPauseButtonCount_; i++)
-			{
-				const Button& button = pauseButtons_[i];
-
-				bool mouseHover = button.IsHovered(mx, my);
-				bool padHover = false;
-
-				if (Novice::GetNumberOfJoysticks() >= 1)
-				{
-					if (i == pauseCursor_)
-					{
-						padHover = true;
-					}
-				}
-
-				bool hover = false;
-				if (mouseHover || padHover)
-				{
-					hover = true;
-				}
-
-				unsigned int color;
-				if (hover)
-				{
-					color = button.hoverColor;
-				}
-				else
-				{
-					color = button.normalColor;
-				}
-				int UIframeW = 300;
-				int UIframeH = 60;
-
-				int srcX = 0;
-				if (i == 0)
-				{
-					srcX = 0;
-				}
-				else if (i == 1)
-				{
-					srcX = 300;
-				}
-				else
-				{
-					srcX = 600;
-				}
-
-				Novice::DrawSpriteRect(button.x, button.y, srcX, 0, UIframeW, UIframeH, pauseUI, UIframeW / 900.0f, 1.0f, 0.0f, color);
-			}
-			break;
-		}
-
-		if (fadeAlpha_ > 0)
+		// グリッド描画
+		for (int r = 0; r < kRows; r++)
 		{
-			unsigned int color = 0x00000000 | fadeAlpha_;
-			Novice::DrawBox(0, 0, kWindowWidth, kWindowHeight, 0.0f, color, kFillModeSolid);
+			for (int c = 0; c < kCols; c++)
+			{
+				int stageIdx = (topRow + r) * kCols + c;
+				if (stageIdx >= kMaxStages) continue;
+
+				int x = kStartX + c * (kTileW + kGapX);
+				int y = kStartY + r * (kTileH + kGapY);
+
+				// --- 色の決定 ---
+				unsigned int color = 0x444466FF; // 通常色（少し暗い青）
+
+				// クリア済みなら色を変える (シアン)
+				bool isCleared = gStageClearFlags[stageIdx];
+				if (isCleared)
+				{
+					color = 0x00AAAAFF;
+				}
+
+				// 選択中ならさらに目立つ色に (オレンジ)
+				if (stageIdx == currentStageNo_)
+				{
+					color = 0xFFAA00FF;
+					// 選択枠を描画
+					Novice::DrawBox(x - 5, y - 5, kTileW + 10, kTileH + 10, 0.0f, 0xFFFFFFAA, kFillModeSolid);
+				}
+
+				// ボックス描画
+				Novice::DrawBox(x, y, kTileW, kTileH, 0.0f, color, kFillModeSolid);
+
+				// テキスト描画 (白)
+				Novice::ScreenPrintf(x + 20, y + 40, "STAGE %d", stageIdx + 1);
+
+				// クリア済みテキストの表示
+				if (isCleared)
+				{
+					// 右上あたりに「CLEAR!」と表示
+					Novice::ScreenPrintf(x + 100, y + 10, "★CLEAR!");
+				}
+			}
 		}
+
+		// スクロールバー
+		float progress = (float)currentStageNo_ / (float)(kMaxStages - 1);
+		Novice::DrawBox(1200, 150, 10, 490, 0.0f, 0x000000FF, kFillModeSolid);
+		Novice::DrawBox(1200, 150 + (int)(470 * progress), 10, 20, 0.0f, 0xFFFFFFFF, kFillModeSolid);
 	}
+	break;
+
+	case SceneType::PLAY:
+		DrawMapChips();
+		player_->Draw();
+		DrawEntities();
+
+		break;
+
+	case SceneType::CLEAR:
+		Novice::DrawSpriteRect(0, 0, 0, 0, 1280, 720, gameClearImage_, 1.0f, 1.0f, 0.0f, 0xFFFFFFFF);
+		break;
+
+	case SceneType::GAMEOVER:
+		Novice::DrawSpriteRect(0, 0, 0, 0, 1280, 720, gameOverImage_, 1.0f, 1.0f, 0.0f, 0xFFFFFFFF);
+		break;
+
+	case SceneType::PAUSE:
+		// 背景
+		DrawMapChips();
+		DrawEntities();
+		player_->Draw();
+		Novice::DrawBox(0, 0, kWindowWidth, kWindowHeight, 0.0f, 0x00000088, kFillModeSolid);
+
+		for (int i = 0; i < kPauseButtonCount_; i++)
+		{
+			const Button& button = pauseButtons_[i];
+
+			bool mouseHover = button.IsHovered(mx, my);
+			bool padHover = false;
+
+			if (Novice::GetNumberOfJoysticks() >= 1)
+			{
+				if (i == pauseCursor_)
+				{
+					padHover = true;
+				}
+			}
+
+			bool hover = false;
+			if (mouseHover || padHover)
+			{
+				hover = true;
+			}
+
+			unsigned int color;
+			if (hover)
+			{
+				color = button.hoverColor;
+			}
+			else
+			{
+				color = button.normalColor;
+			}
+			int UIframeW = 300;
+			int UIframeH = 60;
+
+			int srcX = 0;
+			if (i == 0)
+			{
+				srcX = 0;
+			}
+			else if (i == 1)
+			{
+				srcX = 300;
+			}
+			else
+			{
+				srcX = 600;
+			}
+
+			Novice::DrawSpriteRect(button.x, button.y, srcX, 0, UIframeW, UIframeH, pauseUI, UIframeW / 900.0f, 1.0f, 0.0f, color);
+		}
+		break;
+	}
+
+	if (fadeAlpha_ > 0)
+	{
+		unsigned int color = 0x00000000 | fadeAlpha_;
+		Novice::DrawBox(0, 0, kWindowWidth, kWindowHeight, 0.0f, color, kFillModeSolid);
+	}
+}

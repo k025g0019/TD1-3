@@ -5,7 +5,17 @@
 #include "camera.h"
 int playerHitMusic = -1;
 #include <cmath> // fabsf
+bool isDive = false;
+void Player::UpdeteLeftJoystik() {
+	if (Novice::IsPressButton(0, kPadButton10)) {
+		isDive = true;
 
+	}
+	else {
+		isDive = false;
+	}
+
+}
 float  Player::EaseInBounce(float t) {
 	return t * t * (3.0f - 2.0f * t);
 }
@@ -39,13 +49,20 @@ Player::~Player()
 
 void Player::Initialize()
 {
+
 	status.pos = { 50.0f, 60.0f };
 	status.vel = { 250.0f, 0.0f };   // px/s
 	status.radius = 15.0f;
 	JumpIndex = 5;
+	walkFrame_ = 0;
+	walkFrameTimer_ = 0;
+
 	jumpTimer = 0;
 	jumpAvailable = false;
 	easeEndFrame = 240.0f;
+	PlayerImageMaxFrame = 30;
+	PlayerImage = Novice::LoadTexture("./Resource/Image/player.png");
+	PlayerflallImage = Novice::LoadTexture("./Resource/Image/Playerfalls.png");
 	if (playerHitMusic == -1)
 	{
 		playerHitMusic = Novice::LoadAudio("./Resource/Music/HitPlayer.mp3");
@@ -60,6 +77,10 @@ void Player::DoHitStop(int frames) {
 }
 
 void Player::Update() {
+
+	if (Novice::GetNumberOfJoysticks() >= 1) {
+		UpdeteLeftJoystik();
+	}
 	if (vibration) vibration->Update();
 	const float dt = 1.0f / 60.0f;
 	Camera::Instance().Follow(status.pos.x, status.pos.y);
@@ -89,15 +110,28 @@ void Player::Update() {
 
 	// =========================
 	// 入力
-	// =========================
-
-	const bool isDive = Novice::CheckHitKey(DIK_SPACE);
-
+	// ===================
+	if (Novice::GetNumberOfJoysticks() < 1) {
+		isDive = Novice::CheckHitKey(DIK_SPACE);
+	}
 
 	if (jumpAvailable) {
 		jumpTimer++;
 		if (JumpIndex <= jumpTimer) {
 			jumpAvailable = false;
+		}
+	}
+
+	if (isDive) {
+		if (poseState_ == PoseState::Horizontal ||
+			poseState_ == PoseState::ToHorizontal) {
+			poseState_ = PoseState::ToVertical;
+		}
+	}
+	else {
+		if (poseState_ == PoseState::Vertical ||
+			poseState_ == PoseState::ToVertical) {
+			poseState_ = PoseState::ToHorizontal;
 		}
 	}
 
@@ -117,6 +151,7 @@ void Player::Update() {
 	if (lift > liftMax) lift = liftMax;
 
 	if (isDive) {
+
 		lift *= diveLiftRate;
 		acc.y += diveExtraDown;
 	}
@@ -124,12 +159,14 @@ void Player::Update() {
 	acc.y -= lift;
 
 	// 空気抵抗
-	acc.x += -dragX * status.vel.x;
-	acc.y += -dragY * status.vel.y;
-
+	if (!isGrounded_) {
+		acc.x += -dragX * status.vel.x;
+		acc.y += -dragY * status.vel.y;
+	}
 	// =========================
 	// 速度更新
 	// =========================
+
 	status.vel.x += acc.x * dt;
 	status.vel.y += acc.y * dt;
 
@@ -175,6 +212,33 @@ void Player::Update() {
 		}
 
 	}
+
+
+	if (isWarping_)
+	{
+		auto& src = gEntities[warpSrcIndex_];
+
+		// 入口warpの中心へ寄せる（簡易吸い込み）
+		float targetX = (float)src.x;
+		warpClonePos_.x += (targetX - warpClonePos_.x) * 0.2f; // 0.2は調整
+	}
+
+
+	if (isWarping_)
+	{
+		auto& dst = gEntities[warpDstIndex_];
+		float dstRight = dst.x + dst.w / 2.0f;
+
+		// 本体が出口warpから完全に出たら、入口側残像を消す
+		if (status.pos.x - status.radius > dstRight)
+		{
+			isWarping_ = false;
+			isCloneActive_ = false;
+		}
+	}
+
+
+
 	// 左右
 	if (status.pos.x <= halfSize) {
 		status.pos.x = halfSize;
@@ -221,6 +285,12 @@ void Player::Update() {
 
 		float dx = status.pos.x - nearestX;
 		float dy = status.pos.y - nearestY;
+		// =========================
+// 地面停止 → ゲームオーバー判定
+// =========================
+
+
+
 
 		// ▼ 円 vs 矩形
 		if (CircleRectHit(
@@ -234,9 +304,11 @@ void Player::Update() {
 			{
 			case ENTITY_Entity:
 				// トランポリン
+				//
 				// ▼ 上から踏んだときだけ
 				if (status.vel.y > 0.0f && playerBottom < entityTop + 10.0f)
 				{
+
 					// トランポリン反発
 					status.vel.y = -fabsf(status.vel.y) * 1.2f - 300.0f;
 
@@ -245,6 +317,10 @@ void Player::Update() {
 					jumpAvailable = true;
 					// ヒット演出
 					DoHitStop(6);
+				}
+				else {
+					status.pos.x = ex - status.radius;
+
 				}
 				break;
 
@@ -276,6 +352,7 @@ void Player::Update() {
 				}
 				break;
 			case ENTITY_SWITCHR:
+
 				// 右方向へ進行中のみ
 				if (moveDirX == -1.0f)
 				{
@@ -299,14 +376,14 @@ void Player::Update() {
 				break;
 			case ENTITY_OpenSesame:
 
-				status.pos.x = ex - (ew / 2) + status.radius;
+				status.pos.x = ex - status.radius;
 				break;
 			case ENTITY_BREAKSWALL:
 				if (status.vel.y > 100.0f && playerBottom < entityTop + 10.0f)
 				{
 					status.vel.y -= 100;
 					// 壁破壊演出
-    					DoHitStop(8);
+					DoHitStop(8);
 					// 壁を消す
 					gEntities[i].y = -1000; // 画面外へ移動させるなど
 				}
@@ -324,38 +401,55 @@ void Player::Update() {
 					// ヒット演出
 					DoHitStop(6);
 				}
+				else {
+					status.pos.x = ex - status.radius;
+
+				}
 				break;
 			case ENTITY_WARP:
 			{
-				// クールタイム中は無視
 				if (isWarpCooldown_) break;
+				if (isWarping_) break;
 
-				int srcWarpId = gEntities[i].warpId;
-				if (srcWarpId < 0) break;
 
-				// 同じ warpId の別 Warp を探す
-				for (int j = 0; j < gEntityCount; j++)
+				if (fabsf(dx) > fabsf(dy) && dx < 0.0f)
 				{
-					if (i == j) continue;
+					int srcWarpId = gEntities[i].warpId;
+					if (srcWarpId < 0) break;
 
-					if (gEntities[j].types != ENTITY_WARP) continue;
-					if (gEntities[j].warpId != srcWarpId) continue;
+					for (int j = 0; j < gEntityCount; j++)
+					{
+						if (i == j) continue;
+						if (gEntities[j].types != ENTITY_WARP) continue;
+						if (gEntities[j].warpId != srcWarpId) continue;
 
-					// ワープ実行
-					status.pos.x = (float)gEntities[j].x;
-					status.pos.y = (float)gEntities[j].y;
+						isWarping_ = true;
+						isCloneActive_ = true;
+
+						warpSrcIndex_ = i;
+						warpDstIndex_ = j;
 
 
-
-					// 無限往復防止
-					isWarpCooldown_ = true;
-					warpCooldownTimer_ = 30; // 0.5 秒
+						warpClonePos_ = status.pos;
 
 
-					return;
+						float dstLeft = gEntities[j].x + gEntities[j].w / 2.0f;
+						status.pos.x = dstLeft - status.radius;
+						status.pos.y = (float)gEntities[j].y;
+
+
+						isWarpCooldown_ = true;
+						warpCooldownTimer_ = 10;
+
+
+						return;
+					}
 				}
 			}
 			break;
+
+			break;
+
 
 			default:
 				break;
@@ -369,49 +463,146 @@ void Player::Update() {
 
 }
 
-void Player::Draw() {
-	Camera& cam = Camera::Instance();
-	Novice::DrawEllipse(
-		static_cast<int>(status.pos.x + cam.x),
-		static_cast<int>(status.pos.y + cam.y),
-		static_cast<int>(status.radius),
-		static_cast<int>(status.radius),
-		0.0f,
-		0xFFFF00FF,
-		kFillModeSolid
-	);
-}
+
+
 bool Player::CheckTileCollisions()
 {
 	hitWall_ = false;
-
+	isGrounded_ = false;
 	if (!MapCollisionTop(&status.pos.x, &status.pos.y, &status.radius))
 	{
 		int ty = int((status.pos.y - status.radius) / TILE_SIZE);
 		status.pos.y = (ty + 1) * TILE_SIZE + status.radius;
 		hitWall_ = true;
+		status.vel.x = 0.85f * status.vel.x; // ← 軽い摩擦（毎フレーム）
+
 	}
 
 	if (!MapCollisionBottom(&status.pos.x, &status.pos.y, &status.radius))
 	{
 		int by = int((status.pos.y + status.radius) / TILE_SIZE);
 		status.pos.y = by * TILE_SIZE - status.radius;
+
+		status.vel.x *= 0.85f; // ← 軽い摩擦（毎フレーム）
+
+		isGrounded_ = true;
 		hitWall_ = true;
 	}
+
+
 
 	if (!MapCollisionLeft(&status.pos.x, &status.pos.y, &status.radius))
 	{
 		int lx = int((status.pos.x - status.radius) / TILE_SIZE);
 		status.pos.x = (lx + 1) * TILE_SIZE + status.radius;
 		hitWall_ = true;
+		status.vel.x = 0;
+		isGrounded_ = true;
 	}
+
 
 	if (!MapCollisionRight(&status.pos.x, &status.pos.y, &status.radius))
 	{
 		int rx = int((status.pos.x + status.radius) / TILE_SIZE);
 		status.pos.x = rx * TILE_SIZE - status.radius;
 		hitWall_ = true;
+		status.vel.x = 0;
+		isGrounded_ = true;
 	}
 
+
 	return hitWall_;
+}
+void Player::Draw()
+{
+	Camera& cam = Camera::Instance();
+	const int maxFrame = PlayerImageMaxFrame - 1;
+
+	int drawX = int(status.pos.x - status.radius + cam.x);
+	int drawY = int(status.pos.y - status.radius + cam.y);
+
+	// =========================
+	// 横向き（通常アニメ）
+	// =========================
+	if (poseState_ == PoseState::Horizontal)
+	{
+		walkFrameTimer_++;
+		if (walkFrameTimer_ >= 1) {
+			walkFrameTimer_ = 0;
+			walkFrame_++;
+			if (walkFrame_ > maxFrame) {
+				walkFrame_ = 0;
+			}
+		}
+
+		Novice::DrawSpriteRect(
+			drawX, drawY,
+			walkFrame_ * 500, 0,
+			500, 500,
+			PlayerImage,
+			0.00333333333f, 0.1f, 0.0f,
+			0xFFFFFFFF
+		);
+		return;
+	}
+
+	// =========================
+	// 姿勢遷移（縦画像）
+	// =========================
+	poseFrameTimer_++;
+	if (poseFrameTimer_ >= 1) {
+		poseFrameTimer_ = 0;
+
+		if (poseState_ == PoseState::ToVertical) {
+			poseFrame_++;
+			if (poseFrame_ >= maxFrame) {
+				poseFrame_ = maxFrame;
+				poseState_ = PoseState::Vertical;
+			}
+		}
+		else if (poseState_ == PoseState::ToHorizontal) {
+			poseFrame_--;
+			if (poseFrame_ <= 0) {
+				poseFrame_ = 0;
+				poseState_ = PoseState::Horizontal;
+			}
+		}
+	}
+
+	Novice::DrawSpriteRect(
+		drawX, drawY,
+		poseFrame_ * 500, 0,
+		500, 500,
+		PlayerflallImage,
+		0.00333333333f, 0.1f, 0.0f,
+		0xFFFFFFFF
+	);
+	
+
+
+
+	// 本体
+	/*Novice::DrawEllipse(
+		int(status.pos.x + cam.x),
+		int(status.pos.y + cam.y),
+		int(status.radius),
+		int(status.radius),
+		0.0f,
+		0xFFFF00FF,
+		kFillModeSolid
+	);*/
+
+	// 複製体
+	if (isCloneActive_)
+	{
+		Novice::DrawEllipse(
+			int(warpClonePos_.x + cam.x),
+			int(warpClonePos_.y + cam.y),
+			int(status.radius),
+			int(status.radius),
+			0.0f,
+			0xFFFF00EE, // 半透明推奨
+			kFillModeSolid
+		);
+	}
 }
