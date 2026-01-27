@@ -56,7 +56,11 @@ void Player::Initialize()
 	JumpIndex = 5;
 	walkFrame_ = 0;
 	walkFrameTimer_ = 0;
+<<<<<<< HEAD
+	moveDirX = 1.0f;
+=======
 
+>>>>>>> origin/mano
 	jumpTimer = 0;
 	jumpAvailable = false;
 	easeEndFrame = 240.0f;
@@ -319,7 +323,22 @@ void Player::Update() {
 					DoHitStop(6);
 				}
 				else {
+<<<<<<< HEAD
+					if (fabsf(dx) > fabsf(dy)) {
+						// 横から衝突
+						if (dx > 0.0f) {
+							// 右から当たった → 右に押し出す
+							status.pos.x = ex + ew + status.radius;
+						}
+						else {
+							// 左から当たった → 左に押し出す
+							status.pos.x = ex - status.radius;
+						}
+					}
+
+=======
 					status.pos.x = ex - status.radius;
+>>>>>>> origin/mano
 
 				}
 				break;
@@ -402,7 +421,22 @@ void Player::Update() {
 					DoHitStop(6);
 				}
 				else {
+<<<<<<< HEAD
+					if (fabsf(dx) > fabsf(dy)) {
+						// 横から衝突
+						if (dx > 0.0f) {
+							// 右から当たった → 右に押し出す
+							status.pos.x = ex + ew + status.radius;
+						}
+						else {
+							// 左から当たった → 左に押し出す
+							status.pos.x = ex - status.radius;
+						}
+					}
+
+=======
 					status.pos.x = ex - status.radius;
+>>>>>>> origin/mano
 
 				}
 				break;
