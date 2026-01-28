@@ -37,6 +37,7 @@ public:
 	bool isGrounded_ = false;
 	bool isGameOver_ = false;
 
+	bool hitTrampoline = false;
 	int PlayerImage = -1;
 	int PlayerflallImage = -1;
 	int PlayerImageFrame = 0;

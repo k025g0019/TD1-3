@@ -6,6 +6,8 @@
 int playerHitMusic = -1;
 #include <cmath> // fabsf
 bool isDive = false;
+
+
 void Player::UpdeteLeftJoystik() {
 	if (Novice::IsPressButton(0, kPadButton10)) {
 		isDive = true;
@@ -56,11 +58,9 @@ void Player::Initialize()
 	JumpIndex = 5;
 	walkFrame_ = 0;
 	walkFrameTimer_ = 0;
-<<<<<<< HEAD
-	moveDirX = 1.0f;
-=======
 
->>>>>>> origin/mano
+	moveDirX = 1.0f;
+
 	jumpTimer = 0;
 	jumpAvailable = false;
 	easeEndFrame = 240.0f;
@@ -315,15 +315,19 @@ void Player::Update() {
 
 					// トランポリン反発
 					status.vel.y = -fabsf(status.vel.y) * 1.2f - 300.0f;
-
+					hitTrampoline = true;
 					// めり込み防止（少し上に戻す）
 					status.pos.y = entityTop - status.radius;
 					jumpAvailable = true;
 					// ヒット演出
+							// ★ トランポリンアニメ開始
+					gTrampolineAnim[i].isPlaying = true;
+					gTrampolineAnim[i].frame = 0;
+
 					DoHitStop(6);
 				}
 				else {
-<<<<<<< HEAD
+
 					if (fabsf(dx) > fabsf(dy)) {
 						// 横から衝突
 						if (dx > 0.0f) {
@@ -336,9 +340,8 @@ void Player::Update() {
 						}
 					}
 
-=======
-					status.pos.x = ex - status.radius;
->>>>>>> origin/mano
+
+
 
 				}
 				break;
@@ -352,6 +355,8 @@ void Player::Update() {
 					// めり込み防止（少し上に戻す）
 					status.pos.y = entityTop - status.radius;
 					status.vel.x = -fabsf(status.vel.x); // 右へ
+					gTrampolineAnimR[i].isPlaying = true;
+					gTrampolineAnimR[i].frame = 0;
 					// ヒット演出
 					DoHitStop(6);
 				}
@@ -366,6 +371,8 @@ void Player::Update() {
 					// めり込み防止（少し上に戻す）
 					status.pos.y = entityTop - status.radius;
 					status.vel.x = fabsf(status.vel.x); // 右へ
+					gTrampolineAnimL[i].isPlaying = true;
+					gTrampolineAnimL[i].frame = 0;
 					// ヒット演出
 					DoHitStop(6);
 				}
@@ -385,6 +392,9 @@ void Player::Update() {
 						moveDirX = 1.0f;
 						status.vel.x = fabsf(status.vel.x); // 右へ
 						DoHitStop(4);
+						switchState.isActivated = true;
+						switchState.frame = 0;
+
 						if (!isEasingActive) {
 							isEasingActive = true;
 							easeFrame = 0.0f;
@@ -421,7 +431,7 @@ void Player::Update() {
 					DoHitStop(6);
 				}
 				else {
-<<<<<<< HEAD
+
 					if (fabsf(dx) > fabsf(dy)) {
 						// 横から衝突
 						if (dx > 0.0f) {
@@ -434,9 +444,8 @@ void Player::Update() {
 						}
 					}
 
-=======
-					status.pos.x = ex - status.radius;
->>>>>>> origin/mano
+
+
 
 				}
 				break;
@@ -611,7 +620,7 @@ void Player::Draw()
 		0.00333333333f, 0.1f, 0.0f,
 		0xFFFFFFFF
 	);
-	
+
 
 
 
@@ -628,15 +637,30 @@ void Player::Draw()
 
 	// 複製体
 	if (isCloneActive_)
+
 	{
-		Novice::DrawEllipse(
+		if (poseState_ == PoseState::Horizontal)
+		{
+			Novice::DrawSpriteRect(
+				int(warpClonePos_.x + cam.x),
+				int(warpClonePos_.y + cam.y),
+				walkFrame_ * 500, 0,
+				500, 500,
+				PlayerImage,
+				0.00333333333f, 0.1f, 0.0f,
+				0xFFFFFFFF
+			);
+			return;
+		}
+		Novice::DrawSpriteRect(
 			int(warpClonePos_.x + cam.x),
 			int(warpClonePos_.y + cam.y),
-			int(status.radius),
-			int(status.radius),
-			0.0f,
-			0xFFFF00EE, // 半透明推奨
-			kFillModeSolid
+			poseFrame_ * 500, 0,
+			500, 500,
+			PlayerflallImage,
+			0.00333333333f, 0.1f, 0.0f,
+			0xFFFFFFFF
 		);
+
 	}
 }

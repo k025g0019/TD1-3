@@ -948,6 +948,20 @@
 							"defUid": 673,
 							"px": [1152,128],
 							"fieldInstances": [{ "__identifier": "warpId", "__type": "Int", "__value": 1, "__tile": null, "defUid": 675, "realEditorValues": [{ "id": "V_Int", "params": [1] }] }]
+						},
+						{
+							"__identifier": "Diagonal_Trampoline_Right",
+							"__grid": [115,27],
+							"__pivot": [0.5,0.5],
+							"__tags": [],
+							"__tile": null,
+							"__smartColor": "#BE4A2F",
+							"iid": "e0847ae0-fa90-11f0-8da0-ebff81967b0c",
+							"width": 64,
+							"height": 64,
+							"defUid": 659,
+							"px": [1848,440],
+							"fieldInstances": []
 						}
 					]
 				},

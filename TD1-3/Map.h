@@ -38,10 +38,29 @@ typedef struct Entity
     float easeFrame;
     int warpId;
 } Entity;
+struct TrampolineAnimState {
+    bool isPlaying;
+    int frame;
+};
 
+
+
+
+struct SwitchState {
+    bool isActivated;
+    int frame;
+};
+
+extern SwitchState switchState;
 // ★ ヘッダは extern のみ
 extern Entity gEntities[MAX_ENTITIES];
 extern int gEntityCount;
+
+extern  TrampolineAnimState gTrampolineAnim[MAX_ENTITIES];
+
+extern  TrampolineAnimState gTrampolineAnimR[MAX_ENTITIES];
+
+extern  TrampolineAnimState gTrampolineAnimL[MAX_ENTITIES];
 
 extern int gMap[MAP_HEIGHT][MAP_WIDTH];
 extern int gVisualMap[MAP_HEIGHT][MAP_WIDTH];
