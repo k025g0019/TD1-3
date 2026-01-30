@@ -9,6 +9,7 @@ public:
 	// ▼ カメラ振動用変数（既存）
 	int shakeTimer;
 	float shakeRange;
+	void Reset();   // ★追加
 
 	// ★ シングルトン取得
 	static Camera& Instance() {

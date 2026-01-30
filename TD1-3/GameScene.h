@@ -1,7 +1,7 @@
 ﻿#pragma once
 #include <Novice.h>
 #include "Map.h"
-
+#include "HitStop.h"
 class Player;
 
 enum class SceneType {
@@ -15,17 +15,24 @@ enum class SceneType {
 
 class SceneManager {
 public:
+	
+	int numberTexture = -1;
 
 	// コンストラクタ / デストラクタ
 	SceneManager();
 	~SceneManager();
-
+	void InitTitle();
 	// ステージセレクト用変数
 	int currentStageNo_ = 0;
+	int actionTex = -1;
 
 	// 更新 / 描画
 	void Update(char* keys, char* preKeys);
 	void Draw();
+	void DrawNumber(int x, int y, int number, float scale = 1.0f);
+	static constexpr int START_COUNT_FRAMES = 90;
+	static constexpr int NUMBER_W = 64;
+	static constexpr int NUMBER_H = 64;
 
 private:
 	// ------------------------------------------------------------
@@ -80,7 +87,7 @@ private:
 	int gameClearImage_;
 	int animFrame_;
 	float animTimer_;
-	int TITLEImage = Novice::LoadTexture("./Resource/Image/TITLE.bmp");
+	int TITLEImage = -1;
 	//========================================================================================================
 
 	// --- ゲームオブジェクト ---
