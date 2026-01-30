@@ -1,4 +1,14 @@
 ﻿#include "camera.h"
+#include <algorithm> // std::clamp
+
+void Camera::Reset()
+{
+    x = 0.0f;
+    y = 0.0f;
+    shakeTimer = 0;
+    shakeRange = 0.0f;
+}
+
 
 // ---------------------------------------------
 // プレイヤー追従カメラ
@@ -7,12 +17,23 @@ void Camera::Follow(float playerX, float playerY)
 {
     (void)playerY;
 
-    float targetX = (1280 / 2) - playerX;
+    const float kScreenWidth = 1280.0f;
+    const float kWorldWidth = 2560.0f;
+
+    float targetX = (kScreenWidth / 2.0f) - playerX;
 
     const float followRate = 0.15f;
     x += (targetX - x) * followRate;
 
-    y = 0;
+    // ---- 正しいクランプ ----
+    if (x > 0.0f) {
+        x = 0.0f;
+    }
+    if (x < -(kWorldWidth - kScreenWidth)) {
+        x = -(kWorldWidth - kScreenWidth);
+    }
+
+    y = 0.0f;
 
     UpdateShake();
 }

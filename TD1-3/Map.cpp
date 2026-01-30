@@ -3,10 +3,11 @@
 #include <string.h>
 #include "Map.h"
 
+#include <time.h>
 #include "cJSON.h"
 #include <math.h>
 #define M_PI 3.1415926535897932384626433832795028841971f
-int gMap[MAP_HEIGHT][MAP_WIDTH];
+
 int Number = 0;
 Entity gEntities[MAX_ENTITIES];
 int gEntityCount = 0;
@@ -23,10 +24,14 @@ int TranporinLjumpTex = -1;
 int SwitchTex = -1;
 int SwitchPusshTex = -1;
 int warpTex = -1;
-
+int CloudTex = -1;
+int OpenTex = -1;
+int GoalTex = -1;
 int walkFrameTimer_[5] = { 1 };
 int walkFrame_[5] = { 0 };
 int maxFrame[5] = { 59,59,4,4,4 };
+
+
 // ============================
 // グローバル
 // ============================
@@ -39,7 +44,7 @@ TrampolineAnimState gTrampolineAnim[MAX_ENTITIES];
 
 
 TrampolineAnimState gTrampolineAnimR[MAX_ENTITIES];
-
+CloudState cloudState[100];
 
 TrampolineAnimState gTrampolineAnimL[MAX_ENTITIES];
 SwitchState switchState;
@@ -62,8 +67,6 @@ void InitializeMap()
 {
 	gChipSheetHandle =
 		Novice::LoadTexture("./Resource/Image/Inca_front_by_Kronbits-extended.png");
-	gPlayerTex = Novice::LoadTexture("./Resource/Image/pDrawn.bmp");
-	gEnemyTex = Novice::LoadTexture("./Resource/Image/Drawn.bmp");
 	DrawnTex = Novice::LoadTexture("./Resource/Image/Drawn.png");
 	TranporinTex = Novice::LoadTexture("./Resource/Image/Tranporin.png");
 	TranporinJumpTex = Novice::LoadTexture("./Resource/Image/Tranporinjump.png");
@@ -74,6 +77,9 @@ void InitializeMap()
 	TranporinRjumpTex = Novice::LoadTexture("./Resource/Image/TranporinjumpRight.png");
 	TranporinLTex = Novice::LoadTexture("./Resource/Image/TranporinLeft.png");
 	TranporinLjumpTex = Novice::LoadTexture("./Resource/Image/TranporinjumpLeft.png");
+	CloudTex = Novice::LoadTexture("./Resource/Image/Cloud.png");
+	GoalTex = Novice::LoadTexture("./Resource/Image/Goal.png");
+	OpenTex = Novice::LoadTexture("./Resource/Image/iwa.png");
 
 	for (int y = 0; y < MAP_HEIGHT; y++) {
 		for (int x = 0; x < MAP_WIDTH; x++)
@@ -400,6 +406,7 @@ static void DrawTile(int x, int y, int tileIndex)
 {
 	if (tileIndex < 0) return;
 
+
 	int srcX = (tileIndex % SHEET_COLS) * CHIP_W;
 	int srcY = (tileIndex / SHEET_COLS) * CHIP_H;
 	Number++;
@@ -421,6 +428,8 @@ static void DrawTile(int x, int y, int tileIndex)
 void DrawMapChips(void)
 {
 	Camera& cam = Camera::Instance();
+ 	Novice::DrawSprite(static_cast<int>(2494+cam.x), 0, GoalTex, 1.0f, 1.0f, 0.0f, 0xFFFFFFFF);
+
 	for (int y = 0; y < MAP_HEIGHT; y++)
 	{
 		for (int x = 0; x < MAP_WIDTH; x++)
@@ -449,6 +458,7 @@ void DrawMapChips(void)
 
 void DrawEntities()
 {
+
 	Camera& cam = Camera::Instance();
 
 	for (int i = 0; i < gEntityCount; i++)
@@ -560,11 +570,11 @@ void DrawEntities()
 			{
 				int frameR = gTrampolineAnimR[i].frame;
 
-  				Novice::DrawSpriteRect(
+				Novice::DrawSpriteRect(
 					dx - gEntities[i].w / 2,
 					dy - gEntities[i].h / 2,
 					frameR * 64, 0,
-					
+
 					64, 64,
 					TranporinRjumpTex,
 					0.0333333333f, 1.0f, 0.0f,
@@ -615,8 +625,18 @@ void DrawEntities()
 					0xFFFFFFFF
 				);
 			}
-			}
-
+		}
+		else if (strcmp(gEntities[i].name, "Open_sesame") == 0) {
+			Novice::DrawSpriteRect(
+				dx - gEntities[i].w / 2,
+				dy - gEntities[i].h / 2,
+				0, 0,
+				64, 720,
+				OpenTex,
+				1.0f, 1.0f, 0.0f,
+				0xFFFFFFFF
+			);
+		}
 		else
 		{
 			// 未設定エンティティは赤枠表示
@@ -638,7 +658,7 @@ void DrawEntities()
 // ============================
 	const int TRAMPOLINE_ANIM_MAX = 30; // Tranporinjump.png のコマ数
 
-	for (int i = 0; i < gEntityCount; i += 5)
+	for (int i = 0; i < gEntityCount; i += 1)
 	{
 		if (!gTrampolineAnim[i].isPlaying) continue;
 
@@ -663,7 +683,7 @@ void DrawEntities()
 		}
 	}
 
-	for (int i = 0; i < gEntityCount; i += 5)
+	for (int i = 0; i < gEntityCount; i += 1)
 	{
 		if (!gTrampolineAnimR[i].isPlaying) continue;
 		gTrampolineAnimR[i].frame += 5;
@@ -674,7 +694,7 @@ void DrawEntities()
 		}
 	}
 
-	for (int i = 0; i < gEntityCount; i += 5)
+	for (int i = 0; i < gEntityCount; i += 1)
 	{
 		if (!gTrampolineAnimL[i].isPlaying) continue;
 		gTrampolineAnimL[i].frame += 5;
@@ -687,4 +707,49 @@ void DrawEntities()
 
 
 
+}
+auto ColorARGB = [](int a, int r, int g, int b) {
+	return
+		((unsigned int)a << 24) |
+		((unsigned int)r << 16) |
+		((unsigned int)g << 8) |
+		((unsigned int)b);
+	};
+
+void CloudDraw() {
+	Camera& cam = Camera::Instance();
+	srand(int(time(nullptr)));
+	for (int i = 0; i <= 20; i++) {
+		
+		if (!cloudState[i].active) {
+			cloudState[i].pos.x = float(rand() % 4000);
+			cloudState[i].pos.y = float(rand() % 200);
+			cloudState[i].vel.x = float(rand() % 5+1);
+			cloudState[i].vel.y = 0;
+			cloudState[i].Enlargement.x = 0.1f + 0.6f * ((float)rand() / (float)RAND_MAX);
+			cloudState[i].Enlargement.y = cloudState[i].Enlargement.x + 0.1f * ((float)rand() / (float)RAND_MAX);
+			cloudState[i].a = rand() % 100 + 10;
+			cloudState[i].color = ColorARGB(255, 255, 255, cloudState[i].a);
+			cloudState[i].active = true;
+
+		}
+	}
+
+	for (int i = 0; i <= 20; i++) {
+		if (cloudState[i].active) {
+			if (!HitStop::Instance().IsActive()) {
+				cloudState[i].pos.x -= cloudState[i].vel.x;
+			}
+			
+			Novice::DrawSprite(
+				static_cast<int>(cloudState[i].pos.x+cam.x), static_cast<int>(cloudState[i].pos.y+cam.y),
+				CloudTex, cloudState[i].Enlargement.x, cloudState[i].Enlargement.y,
+				0.0f, cloudState[i].color
+			);
+
+			if (cloudState[i].pos.x < -200) {
+				cloudState[i].active = false;
+			}
+		}
+	}
 }

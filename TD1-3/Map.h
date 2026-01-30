@@ -1,7 +1,8 @@
 ﻿#pragma once
 #include <Novice.h>
 #include "camera.h"
-
+#include "Vector.h"
+#include "HitStop.h"
 #define MAP_HEIGHT 45
 #define MAP_WIDTH  180
 
@@ -15,41 +16,51 @@
 
 enum EntityType
 {
-    ENTITY_Entity,
-    ENTITY_Trampoline_R,
-    ENTITY_Trampoline_L,
-    ENTITY_UNKNOWN,
-    ENTITY_SWITCHR,
-    ENTITY_OpenSesame,
-    ENTITY_BREAKSWALL,
-    ENTITY_Drawmn,
-    ENTITY_WARP
+	ENTITY_Entity,
+	ENTITY_Trampoline_R,
+	ENTITY_Trampoline_L,
+	ENTITY_UNKNOWN,
+	ENTITY_SWITCHR,
+	ENTITY_OpenSesame,
+	ENTITY_BREAKSWALL,
+	ENTITY_Drawmn,
+	ENTITY_WARP
 };
 
 typedef struct Entity
 {
-    char name[32];
-    EntityType types;
-    int x, y;
-    int w, h;
-    int startX, startY;
-    int endX, endY;
-    float timer;
-    float easeFrame;
-    int warpId;
+	char name[32];
+	EntityType types;
+	int x, y;
+	int w, h;
+	int startX, startY;
+	int endX, endY;
+	float timer;
+	float easeFrame;
+	int warpId;
 } Entity;
 struct TrampolineAnimState {
-    bool isPlaying;
-    int frame;
+	bool isPlaying;
+	int frame;
 };
 
 
 
 
 struct SwitchState {
-    bool isActivated;
-    int frame;
+	bool isActivated;
+	int frame;
 };
+
+struct CloudState {
+	Vector2 pos;
+	Vector2 vel;
+	bool active;
+	Vector2 Enlargement;
+	int a;
+	unsigned  int color;
+};
+
 
 extern SwitchState switchState;
 // ★ ヘッダは extern のみ
@@ -69,19 +80,19 @@ extern int gChipSheetHandle;
 
 void InitializeMap();
 int LoadMapLDtk(const char* filePath, int levelIndex);
-
+void CloudDraw();
 void DrawMapChips(void);
 void DrawEntities(void);
 
 void UpdateEntity();
 enum MapType {
-    MAP_EMPTY = 0,
-    MAP_WALL = 1,
-    MAP_GOAL = 2,
-    MAP_DANGER = 3,
-    MAP_BIRD = 4,
-    MAP_DRONE = 5,
-    MAP_WARPIN = 6,
-    MAP_WARPOUT = 7,
-    MAP_TRAMPOLINE = 8
+	MAP_EMPTY = 0,
+	MAP_WALL = 1,
+	MAP_GOAL = 2,
+	MAP_DANGER = 3,
+	MAP_BIRD = 4,
+	MAP_DRONE = 5,
+	MAP_WARPIN = 6,
+	MAP_WARPOUT = 7,
+	MAP_TRAMPOLINE = 8
 };

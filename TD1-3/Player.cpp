@@ -52,13 +52,14 @@ Player::~Player()
 void Player::Initialize()
 {
 
+	isDead_ = false;
 	status.pos = { 50.0f, 60.0f };
 	status.vel = { 250.0f, 0.0f };   // px/s
 	status.radius = 15.0f;
 	JumpIndex = 5;
 	walkFrame_ = 0;
 	walkFrameTimer_ = 0;
-
+	
 	moveDirX = 1.0f;
 
 	jumpTimer = 0;
@@ -171,6 +172,7 @@ void Player::Update() {
 	// 速度更新
 	// =========================
 
+
 	status.vel.x += acc.x * dt;
 	status.vel.y += acc.y * dt;
 
@@ -268,7 +270,9 @@ void Player::Update() {
 	}
 	// 壁との当たり判定（押し戻し）
 	if (CheckTileCollisions()) {
-		DoHitStop(10);  // ← 6フレームだけ時間停止
+		DoHitStop(6);  // ← 6フレームだけ時間停止
+		isDead_ = true;
+		return;
 	}
 
 	for (int i = 0; i < gEntityCount; i++)
@@ -288,7 +292,7 @@ void Player::Update() {
 		float nearestY = fmaxf(ey, fminf(status.pos.y, ey + eh));
 
 		float dx = status.pos.x - nearestX;
-		float dy = status.pos.y - nearestY;
+		float dy = status.pos.y-5 - nearestY;
 		// =========================
 // 地面停止 → ゲームオーバー判定
 // =========================
@@ -324,7 +328,6 @@ void Player::Update() {
 					gTrampolineAnim[i].isPlaying = true;
 					gTrampolineAnim[i].frame = 0;
 
-					DoHitStop(6);
 				}
 				else {
 
@@ -357,8 +360,7 @@ void Player::Update() {
 					status.vel.x = -fabsf(status.vel.x); // 右へ
 					gTrampolineAnimR[i].isPlaying = true;
 					gTrampolineAnimR[i].frame = 0;
-					// ヒット演出
-					DoHitStop(6);
+
 				}
 				break;
 			case ENTITY_Trampoline_L:
@@ -373,8 +375,7 @@ void Player::Update() {
 					status.vel.x = fabsf(status.vel.x); // 右へ
 					gTrampolineAnimL[i].isPlaying = true;
 					gTrampolineAnimL[i].frame = 0;
-					// ヒット演出
-					DoHitStop(6);
+
 				}
 				break;
 			case ENTITY_SWITCHR:
@@ -391,7 +392,7 @@ void Player::Update() {
 						// 進行方向反転
 						moveDirX = 1.0f;
 						status.vel.x = fabsf(status.vel.x); // 右へ
-						DoHitStop(4);
+
 						switchState.isActivated = true;
 						switchState.frame = 0;
 
@@ -411,8 +412,7 @@ void Player::Update() {
 				if (status.vel.y > 100.0f && playerBottom < entityTop + 10.0f)
 				{
 					status.vel.y -= 100;
-					// 壁破壊演出
-					DoHitStop(8);
+
 					// 壁を消す
 					gEntities[i].y = -1000; // 画面外へ移動させるなど
 				}
@@ -428,7 +428,7 @@ void Player::Update() {
 					status.pos.y = entityTop - status.radius;
 					jumpAvailable = true;
 					// ヒット演出
-					DoHitStop(6);
+
 				}
 				else {
 
@@ -517,7 +517,7 @@ bool Player::CheckTileCollisions()
 		int ty = int((status.pos.y - status.radius) / TILE_SIZE);
 		status.pos.y = (ty + 1) * TILE_SIZE + status.radius;
 		hitWall_ = true;
-		status.vel.x = 0.85f * status.vel.x; // ← 軽い摩擦（毎フレーム）
+		status.vel.x = 0.2f * status.vel.x; // ← 軽い摩擦（毎フレーム）
 
 	}
 
@@ -526,7 +526,7 @@ bool Player::CheckTileCollisions()
 		int by = int((status.pos.y + status.radius) / TILE_SIZE);
 		status.pos.y = by * TILE_SIZE - status.radius;
 
-		status.vel.x *= 0.85f; // ← 軽い摩擦（毎フレーム）
+		status.vel.x *= 0.2f; // ← 軽い摩擦（毎フレーム）
 
 		isGrounded_ = true;
 		hitWall_ = true;

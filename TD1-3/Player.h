@@ -29,6 +29,8 @@ public:
 	// ワープ演出用
 	bool isWarping_ = false;        // 演出中
 	bool isCloneActive_ = false;    // 入口残像を描画するか
+	bool isDead_ = false;
+	bool IsDead() const { return isDead_; }
 
 	Vector2 warpClonePos_;          // 入口側の残像（複製）位置
 	int warpSrcIndex_ = -1;         // 入口warp
