@@ -184,8 +184,8 @@ SceneManager::SceneManager()
 	// 画像読み込み
 	TITLEImage = Novice::LoadTexture("./Resource/Image/TITLE.png");
 	pauseUI = Novice::LoadTexture("./Resource/Image/pauseUI.png");
-	gameOverImage_ = Novice::LoadTexture("./Resource/Image/gameOVER.png");
-	gameClearImage_ = Novice::LoadTexture("./Resource/Image/gameCLEAR.png");
+	gameOverImage_ = Novice::LoadTexture("./Resource/Image/gameOVER.jpg");
+	gameClearImage_ = Novice::LoadTexture("./Resource/Image/GAMECLEAR.bmp");
 	titlePlayerimage = Novice::LoadTexture("./Resource/Image/player.png");
 	titleFont = Novice::LoadTexture("./Resource/Image/titleFont.png");
 	// マップチップ画像ロード
