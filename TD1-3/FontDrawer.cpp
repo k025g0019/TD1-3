@@ -495,6 +495,8 @@ void DrawBitmapString(
                 if (glyph)
                 {
                     tex = gTexAlphabet;
+                    scaraFontX = scale / 704;
+                    scaraFontY = scale / 448;
                 }
                 else {
                     glyph = FindGlyph(TOKUSYU_GLYPHS, TOKUSYU_GLYPHS_COUNT, ch);

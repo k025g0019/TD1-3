@@ -686,7 +686,7 @@ void DrawEntities()
 				gEntities[i].h,
 				0.0f,
 				0xFF0000FF,
-				kFillModeSolid
+				kFillModeWireFrame
 			);
 		}
 
