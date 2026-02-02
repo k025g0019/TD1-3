@@ -13,7 +13,12 @@
 #define TILE_SIZE 16
 
 #define MAX_ENTITIES 128
+// 既存の宣言の近くでOK
+extern int gActiveTextEntity;
 
+// ★ 追加
+extern bool gIsTouchingFontEntity;
+extern bool gFontPauseActive;
 enum EntityType
 {
 	ENTITY_Entity,
@@ -24,9 +29,9 @@ enum EntityType
 	ENTITY_OpenSesame,
 	ENTITY_BREAKSWALL,
 	ENTITY_Drawmn,
-	ENTITY_WARP
+	ENTITY_WARP,
+	ENTITY_FONT
 };
-
 typedef struct Entity
 {
 	char name[32];
@@ -38,12 +43,16 @@ typedef struct Entity
 	float timer;
 	float easeFrame;
 	int warpId;
+
+	// ★ 追加：LDtk の String フィールド用
+	char text[128];
 } Entity;
+
 struct TrampolineAnimState {
 	bool isPlaying;
 	int frame;
 };
-
+extern int gActiveTextEntity;
 
 
 

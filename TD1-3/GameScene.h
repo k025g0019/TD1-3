@@ -6,6 +6,7 @@ class Player;
 
 enum class SceneType {
 	TITLE,
+	GAMESETUMEI,
 	STAGESELECT,
 	PLAY,
 	CLEAR,
@@ -15,7 +16,7 @@ enum class SceneType {
 
 class SceneManager {
 public:
-	
+
 	int numberTexture = -1;
 
 	// コンストラクタ / デストラクタ
@@ -33,6 +34,11 @@ public:
 	static constexpr int START_COUNT_FRAMES = 90;
 	static constexpr int NUMBER_W = 64;
 	static constexpr int NUMBER_H = 64;
+
+	int GAMESETUMEIIMAGE = -1;
+	int SpaceStumei = -1;
+	int rakkaStumei = -1;
+	int goalStumei = -1;
 
 private:
 	// ------------------------------------------------------------
@@ -88,8 +94,23 @@ private:
 	int animFrame_;
 	float animTimer_;
 	int TITLEImage = -1;
+
+	int titleHandle = -1;
+	int chargeHandle = -1;
+	int chargeAccentHandle = -1;
+	int fireHandle = -1;
+	int BGM = -1;
+	int countDown = -1;
+
+	int titleHandleActive = -1;
+	int chargeHandleActive = -1;
+	int chargeAccentHandleActive = -1;
+	int fireHandleActive = -1;
+	int BGMActive = -1;
+	int countDownActive = -1;
 	//========================================================================================================
 
+	bool HitStopActivetoSentaku = false;
 	// --- ゲームオブジェクト ---
 
 	Player* player_ = nullptr;

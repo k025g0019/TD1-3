@@ -32,9 +32,6 @@
     <ClCompile Include="MapCollision.cpp">
       <Filter>KamataEngine</Filter>
     </ClCompile>
-    <ClCompile Include="StageGimmick.cpp">
-      <Filter>KamataEngine</Filter>
-    </ClCompile>
     <ClCompile Include="camera.cpp">
       <Filter>KamataEngine</Filter>
     </ClCompile>
@@ -42,6 +39,9 @@
       <Filter>KamataEngine</Filter>
     </ClCompile>
     <ClCompile Include="cJSON.c">
+      <Filter>KamataEngine</Filter>
+    </ClCompile>
+    <ClCompile Include="FontDrawer.cpp">
       <Filter>KamataEngine</Filter>
     </ClCompile>
   </ItemGroup>
@@ -132,10 +132,10 @@
     <ClInclude Include="GameScene.h" />
     <ClInclude Include="Map.h" />
     <ClInclude Include="MapCollision.h" />
-    <ClInclude Include="StageGimmick.h" />
     <ClInclude Include="camera.h" />
     <ClInclude Include="Vibration.h" />
     <ClInclude Include="HitStop.h" />
     <ClInclude Include="cJSON.h" />
+    <ClInclude Include="FontDrawer.h" />
   </ItemGroup>
 </Project>
