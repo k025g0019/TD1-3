@@ -18,7 +18,7 @@ void Camera::Follow(float playerX, float playerY)
     (void)playerY;
 
     const float kScreenWidth = 1280.0f;
-    const float kWorldWidth = 2560.0f;
+    const float kWorldWidth = 2880.0f;
 
     float targetX = (kScreenWidth / 2.0f) - playerX;
 
