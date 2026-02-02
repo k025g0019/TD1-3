@@ -1,4 +1,4 @@
-﻿#include <stdio.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include "Map.h"
@@ -27,6 +27,11 @@ int warpTex = -1;
 int CloudTex = -1;
 int OpenTex = -1;
 int GoalTex = -1;
+int backGroundTex1 = -1;
+int backGroundTex2 = -1;
+int backGroundTex3 = -1;
+int backGroundTex4 = -1;
+int siki = 0;
 int walkFrameTimer_[5] = { 1 };
 int walkFrame_[5] = { 0 };
 int maxFrame[5] = { 59,59,4,4,4 };
@@ -82,6 +87,10 @@ void InitializeMap()
 	CloudTex = Novice::LoadTexture("./Resource/Image/Cloud.png");
 	GoalTex = Novice::LoadTexture("./Resource/Image/Goal.png");
 	OpenTex = Novice::LoadTexture("./Resource/Image/iwa.png");
+	backGroundTex1 = Novice::LoadTexture("./Resource/Image/haru.png");
+	backGroundTex2 = Novice::LoadTexture("./Resource/Image/natu.png");
+	backGroundTex3 = Novice::LoadTexture("./Resource/Image/aki.png");
+	backGroundTex4 = Novice::LoadTexture("./Resource/Image/huyu.png");
 
 	for (int y = 0; y < MAP_HEIGHT; y++) {
 		for (int x = 0; x < MAP_WIDTH; x++)
@@ -99,8 +108,8 @@ void InitializeMap()
 	gEntityCount = 0;
 	FontDrawer_Initialize();
 
-
-
+	srand((unsigned int)time(NULL));
+	siki = rand() % 4 + 1;
 }
 
 // ============================
@@ -453,7 +462,22 @@ static void DrawTile(int x, int y, int tileIndex)
 void DrawMapChips(void)
 {
 	Camera& cam = Camera::Instance();
- 	Novice::DrawSprite(static_cast<int>(2816+cam.x), 0, GoalTex, 1.0f, 1.0f, 0.0f, 0xFFFFFFFF);
+	switch (siki)
+	{
+	case 1:
+		Novice::DrawSprite(static_cast<int>(cam.x), 0, backGroundTex1, 1.0f, 1.0f, 0.0f, 0xFFFFFFFF);
+		break;
+	case 2:
+		Novice::DrawSprite(static_cast<int>(cam.x), 0, backGroundTex2, 1.0f, 1.0f, 0.0f, 0xFFFFFFFF);
+		break;
+	case 3:
+		Novice::DrawSprite(static_cast<int>(cam.x), 0, backGroundTex3, 1.0f, 1.0f, 0.0f, 0xFFFFFFFF);
+		break;
+	case 4:
+		Novice::DrawSprite(static_cast<int>(cam.x), 0, backGroundTex4, 1.0f, 1.0f, 0.0f, 0xFFFFFFFF);
+		break;
+	}
+ 	Novice::DrawSprite(static_cast<int>(2494+cam.x), 0, GoalTex, 1.0f, 1.0f, 0.0f, 0xFFFFFFFF);
 
 	for (int y = 0; y < MAP_HEIGHT; y++)
 	{
@@ -465,6 +489,7 @@ void DrawMapChips(void)
 
 			int dx = x * TILE_SIZE + (int)cam.x;
 			int dy = y * TILE_SIZE + (int)cam.y;
+
 			if (gVisualMap[y][x] >= 0)
 			{
 				/*Novice::DrawBox(
