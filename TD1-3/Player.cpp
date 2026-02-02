@@ -6,7 +6,10 @@
 int playerHitMusic = -1;
 #include <cmath> // fabsf
 bool isDive = false;
-
+bool gWasTouchingFontEntity = false;
+extern bool gIsTouchingFontEntity;
+extern bool gFontPauseActive;
+extern int gActiveTextEntity;
 
 void Player::UpdeteLeftJoystik() {
 	if (Novice::IsPressButton(0, kPadButton10)) {
@@ -59,7 +62,7 @@ void Player::Initialize()
 	JumpIndex = 5;
 	walkFrame_ = 0;
 	walkFrameTimer_ = 0;
-	
+
 	moveDirX = 1.0f;
 
 	jumpTimer = 0;
@@ -82,6 +85,8 @@ void Player::DoHitStop(int frames) {
 }
 
 void Player::Update() {
+	gIsTouchingFontEntity = false;
+	gActiveTextEntity = -1;
 
 	if (Novice::GetNumberOfJoysticks() >= 1) {
 		UpdeteLeftJoystik();
@@ -274,7 +279,7 @@ void Player::Update() {
 		isDead_ = true;
 		return;
 	}
-
+	gActiveTextEntity = -1;
 	for (int i = 0; i < gEntityCount; i++)
 	{
 		// Entity 矩形
@@ -292,7 +297,7 @@ void Player::Update() {
 		float nearestY = fmaxf(ey, fminf(status.pos.y, ey + eh));
 
 		float dx = status.pos.x - nearestX;
-		float dy = status.pos.y-5 - nearestY;
+		float dy = status.pos.y - 5 - nearestY;
 		// =========================
 // 地面停止 → ゲームオーバー判定
 // =========================
@@ -318,7 +323,7 @@ void Player::Update() {
 				{
 
 					// トランポリン反発
-					status.vel.y = -fabsf(status.vel.y) * 1.2f - 300.0f;
+					status.vel.y = -fabsf(status.vel.y) * 1.2f - 200.0f;
 					hitTrampoline = true;
 					// めり込み防止（少し上に戻す）
 					status.pos.y = entityTop - status.radius;
@@ -352,7 +357,7 @@ void Player::Update() {
 			case ENTITY_Trampoline_R:
 				if (status.vel.y > 0.0f && playerBottom < entityTop + 10.0f)
 				{
-					status.vel.y = -fabsf(status.vel.y) * 1.2f - 300.0f;
+					status.vel.y = -fabsf(status.vel.y) * 1.2f - 200.0f;
 					moveDirX *= -1.0f;
 					jumpAvailable = true;
 					// めり込み防止（少し上に戻す）
@@ -367,7 +372,7 @@ void Player::Update() {
 
 				if (status.vel.y > 0.0f && playerBottom < entityTop + 10.0f)
 				{
-					status.vel.y = -fabsf(status.vel.y) * 1.2f - 300.0f;
+					status.vel.y = -fabsf(status.vel.y) * 1.2f - 200.0f;
 					moveDirX *= -1.0f;
 					jumpAvailable = true;
 					// めり込み防止（少し上に戻す）
@@ -422,7 +427,7 @@ void Player::Update() {
 				if (status.vel.y > 0.0f && playerBottom < entityTop + 10.0f)
 				{
 					// トランポリン反発
-					status.vel.y = -fabsf(status.vel.y) * 1.2f - 300.0f;
+					status.vel.y = -fabsf(status.vel.y) * 1.2f - 200.0f;
 
 					// めり込み防止（少し上に戻す）
 					status.pos.y = entityTop - status.radius;
@@ -488,8 +493,22 @@ void Player::Update() {
 						return;
 					}
 				}
+				break;
 			}
-			break;
+			case ENTITY_FONT:
+			{
+				gActiveTextEntity = i;
+
+				// 侵入した瞬間だけ停止
+				if (!gWasTouchingFontEntity)
+				{
+					gFontPauseActive = true;
+				}
+
+				gIsTouchingFontEntity = true;
+				break;
+			}
+
 
 			break;
 
@@ -503,6 +522,7 @@ void Player::Update() {
 
 
 	}
+	gWasTouchingFontEntity = gIsTouchingFontEntity;
 
 }
 

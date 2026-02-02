@@ -2,7 +2,8 @@
 #include "Player.h"
 #include "MapCollision.h"
 #include "camera.h"
-#include "Map.h" 
+#include "Map.h"
+#include "FontDrawer.h"
 #include <Novice.h>
 #include <stdio.h>
 #include <math.h>
@@ -29,9 +30,9 @@ const int kGapX = 40;       // 横の間隔
 const int kGapY = 30;       // 縦の間隔
 const int kStartX = 110;    // 表示開始X座標
 const int kStartY = 150;    // 表示開始Y座標
-int Frame[5] = { 0 };
-int MaxFrame[5] = { 10, 30,60 };
-int FrameTimer[5] = { 0 };
+int Frame[10] = { 0 };
+int MaxFrame[10] = { 10, 30,60 ,51,13 ,29};
+int FrameTimer[10] = { 0 };
 int titlePlayerimage = -1;
 int titleFont = -1;
 enum class TitlePlayerState {
@@ -111,10 +112,12 @@ void SceneManager::DrawNumber(int x, int y, int number, float scale)
 
 void SceneManager::InitTitle()
 {
+
+
 	player_->Initialize();
 	for (int i = 0; i < 5; i++) {
-		Frame[i] =0;
-		FrameTimer[i] =0;
+		Frame[i] = 0;
+		FrameTimer[i] = 0;
 	}
 
 	titleState_ = TitlePlayerState::IDLE;
@@ -125,21 +128,34 @@ void SceneManager::InitTitle()
 // SceneManager のコンストラクタ
 SceneManager::SceneManager()
 {
+	HitStopActivetoSentaku = false;
 	numberTexture = Novice::LoadTexture("./Resource/Image/Number.png");
 	actionTex = Novice::LoadTexture("./Resource/Image/Start.png");
 	doorTexture[0] = Novice::LoadTexture("./Resource/Image/stageSelectseiteki.png");
 	doorTexture[1] = Novice::LoadTexture("./Resource/Image/stageSelect.png");
 	doorTexture[2] = Novice::LoadTexture("./Resource/Image/stageSelectclear.png");
-	doorTexture[3] = Novice::LoadTexture("./Resource/Image/stageSelectclearDO.png");
-	// --- ドアアニメ初期化 ---
-	for (int i = 0; i < kMaxStages; i++)
-	{
-		doorAnim[i].frame = 0;
-		doorAnim[i].playing = false;
-		doorAnim[i].Maxframe = 30;
-		doorAnim[i].time = 0;
 
-	}
+	doorTexture[3] = Novice::LoadTexture("./Resource/Image/stageSelectclearDO.png");
+
+	titleHandle = Novice::LoadAudio("./Resource/Music/Title.wav");
+	chargeHandle = Novice::LoadAudio("./Resource/Music/charge.wav");
+	chargeAccentHandle = Novice::LoadAudio("./Resource/Music/chargeAccent.wav");
+	fireHandle = Novice::LoadAudio("./Resource/Music/fire.wav");
+	BGM = Novice::LoadAudio("./Resource/Music/BGM.wav");
+	countDown = Novice::LoadAudio("./Resource/Music/321.wav");
+	GAMESETUMEIIMAGE = Novice::LoadTexture("./Resource/Image/Stumei/SETUMEI.png");
+	SpaceStumei = Novice::LoadTexture("./Resource/Image/Stumei/space.png");
+	rakkaStumei = Novice::LoadTexture("./Resource/Image/Stumei/rakka.png");
+	goalStumei = Novice::LoadTexture("./Resource/Image/Stumei/goal.png");
+		// --- ドアアニメ初期化 ---
+		for (int i = 0; i < kMaxStages; i++)
+		{
+			doorAnim[i].frame = 0;
+			doorAnim[i].playing = false;
+			doorAnim[i].Maxframe = 30;
+			doorAnim[i].time = 0;
+
+		}
 
 	// 初期シーン設定
 	currentScene_ = SceneType::TITLE;
@@ -154,7 +170,7 @@ SceneManager::SceneManager()
 	titlePlayer.pos.y = 320;
 	// ステージセレクト初期化
 	currentStageNo_ = 0;
-	
+
 	// ゲーム用オブジェクト生成
 	player_ = new Player;
 
@@ -184,10 +200,11 @@ SceneManager::SceneManager()
 	// 画像読み込み
 	TITLEImage = Novice::LoadTexture("./Resource/Image/TITLE.png");
 	pauseUI = Novice::LoadTexture("./Resource/Image/pauseUI.png");
-	gameOverImage_ = Novice::LoadTexture("./Resource/Image/gameOVER.png");
-	gameClearImage_ = Novice::LoadTexture("./Resource/Image/gameCLEAR.png");
+	gameOverImage_ = Novice::LoadTexture("./Resource/Image/gameOVER.jpg");
+	gameClearImage_ = Novice::LoadTexture("./Resource/Image/GAMECLEAR.bmp");
 	titlePlayerimage = Novice::LoadTexture("./Resource/Image/player.png");
 	titleFont = Novice::LoadTexture("./Resource/Image/titleFont.png");
+
 	// マップチップ画像ロード
 	if (gChipSheetHandle == -1)
 	{
@@ -250,6 +267,11 @@ void DrawStageMap(void)
 // ------------------------------------------------------------
 void SceneManager::Update(char* keys, char* preKeys)
 {
+	if ((Novice::IsPlayingAudio(BGMActive) == 0 || BGMActive == -1) && currentScene_ != SceneType::TITLE) {
+
+		BGMActive = Novice::PlayAudio(BGM, 0, 1);
+
+	}
 	// ------------------------------
 // 選択中ドアの論理座標を確定
 // ------------------------------
@@ -315,9 +337,20 @@ void SceneManager::Update(char* keys, char* preKeys)
 	{
 
 	case SceneType::TITLE:
+		if (Novice::IsPlayingAudio(titleHandleActive) == 0 || titleHandleActive == -1) {
+
+			titleHandleActive = Novice::PlayAudio(titleHandle, 0, 1);
+
+
+		}
+
+
+
+
+
 
 		switch (titleState_) {
-			
+
 			// --------------------
 			// 待機
 			// --------------------
@@ -340,8 +373,19 @@ void SceneManager::Update(char* keys, char* preKeys)
 
 			// 少し後ろに引く
 			titlePlayer.pos.x -= 1.0f;
+			if (Novice::IsPlayingAudio(chargeHandleActive) == 0 || chargeHandleActive == -1) {
+				chargeHandleActive = Novice::PlayAudio(chargeHandle, 0, 1);
 
-			if (titleTimer_ >= 30) {
+
+			}
+			if (titleTimer_ >= 180) {
+				if (Novice::IsPlayingAudio(chargeHandleActive) || chargeHandleActive) {
+
+					Novice::StopAudio(chargeHandle);
+
+				}
+
+
 				titleState_ = TitlePlayerState::DASH;
 				titleDashSpeed_ = 0.0f;
 
@@ -353,13 +397,29 @@ void SceneManager::Update(char* keys, char* preKeys)
 			// 突進
 			// --------------------
 		case TitlePlayerState::DASH:
-			titleDashSpeed_ += 3.5f;
+			titleDashSpeed_ += 1.5f;
 			titlePlayer.pos.x += titleDashSpeed_;
+			if (Novice::IsPlayingAudio(fireHandleActive) == 0 || fireHandleActive == -1) {
 
+				fireHandleActive = Novice::PlayAudio(fireHandle, 0, 1);
+
+			}
+
+			if (Novice::IsPlayingAudio(chargeAccentHandleActive) == 0 || chargeAccentHandleActive == -1) {
+
+				chargeAccentHandleActive = Novice::PlayAudio(chargeAccentHandle, 0, 1);
+
+			}
 			if (titlePlayer.pos.x > kWindowWidth + 200) {
 				previousScene_ = SceneType::TITLE;
 				InitTitle();
-				StartFade(SceneType::STAGESELECT);
+				StartFade(SceneType::GAMESETUMEI);
+				if (Novice::IsPlayingAudio(titleHandleActive) || titleHandleActive) {
+
+					Novice::StopAudio(titleHandle);
+
+				}
+
 			}
 			break;
 		}
@@ -367,9 +427,25 @@ void SceneManager::Update(char* keys, char* preKeys)
 		break;
 
 
+	case SceneType::GAMESETUMEI:
+	{
 
+
+
+		if (keys[DIK_SPACE] && !preKeys[DIK_SPACE] ||
+			Novice::IsTriggerButton(0, kPadButton10) ||
+			Novice::IsTriggerMouse(0)) {
+
+			StartFade(SceneType::STAGESELECT);
+
+			// ★チャージ開始エフェクト
+		}
+		break;
+	}
 	case SceneType::STAGESELECT:
 	{
+
+
 		if (stageSelectState_ == StageSelectState::ENTERING)
 		{
 			switch (titleState_)
@@ -408,7 +484,7 @@ void SceneManager::Update(char* keys, char* preKeys)
 
 					stageSelectState_ = StageSelectState::SELECT;
 					titleState_ = TitlePlayerState::IDLE;
-
+					HitStopActivetoSentaku = true;
 					StartFade(SceneType::PLAY);
 					HitStop::Instance().Start(START_COUNT_FRAMES);
 				}
@@ -424,9 +500,9 @@ void SceneManager::Update(char* keys, char* preKeys)
 
 		if (stageSelectState_ == StageSelectState::SELECT)
 		{
-			// ★ ドアの左に立つだけ（動かさない）
-			titlePlayer.pos.x = float(selectedDoorX - 48);   // ドア左
-			titlePlayer.pos.y = float(selectedDoorY + 20);   // 足元合わせ
+
+			titlePlayer.pos.x = float(selectedDoorX - 48);
+			titlePlayer.pos.y = float(selectedDoorY + 20);
 		}
 
 		// ----------------------------------------------------------
@@ -584,9 +660,27 @@ void SceneManager::Update(char* keys, char* preKeys)
 
 	case SceneType::PLAY:
 		HitStop::Instance().Update();
+		if (gFontPauseActive)
+		{
+			// Spaceで解除
+			if (keys[DIK_SPACE] && !preKeys[DIK_SPACE])
+			{
+				gFontPauseActive = false;
+			}
+
+			break; // ★ Updateを止める（Drawは通る）
+		}
 		// ★カウントダウン中は更新しない
-		if (HitStop::Instance().IsActive()) {
+		if (HitStop::Instance().IsActive() && HitStopActivetoSentaku) {
 			break;
+		}
+		else {
+			HitStopActivetoSentaku = false;
+			if (Novice::IsPlayingAudio(countDownActive) || countDownActive) {
+
+				Novice::StopAudio(countDown);
+
+			}
 		}
 
 		UpdateEntity();
@@ -606,10 +700,10 @@ void SceneManager::Update(char* keys, char* preKeys)
 		if (player_->isGrounded_) {
 			if (abs(player_->status.vel.x) <= 20.0f) {
 				StartFade(SceneType::GAMEOVER);
-				
+
 			}
 		}
-		if (player_->status.pos.x >= 2560.0f) {
+		if (player_->status.pos.x >= 2800.0f) {
 			if (currentStageNo_ >= 0 && currentStageNo_ < kMaxStages)
 			{
 				gStageClearFlags[currentStageNo_] = true;
@@ -779,8 +873,61 @@ void SceneManager::Draw()
 		Novice::DrawSprite(0, 0, titleFont, 1.0f, 1.0f, 0.0f, 0xFFFFFFFF);
 		break;
 
-		// 
+		//
 		// ステージセレクトの描画
+
+	case SceneType::GAMESETUMEI:
+	{
+		Novice::DrawSprite(0, 0, GAMESETUMEIIMAGE, 1.0f, 1.0f, 0.0f, 0xFFFFFFFF);
+
+		FrameTimer[3]++;
+		if (FrameTimer[3] >= 5) {
+			Frame[3]++;
+			FrameTimer[3] = 0;
+			if (Frame[3] >= MaxFrame[3]) {
+				Frame[3] = 0;
+			}
+		}
+
+		Novice::DrawSpriteRect(
+			0, 200,
+			675 * (Frame[3] % 10), 1080 * (Frame[3] / 10),
+			670, 1080, SpaceStumei,
+			0.05f, 0.083f, 0.0f, 0xFFFFFFFF);
+
+		FrameTimer[4]++;
+		if (FrameTimer[4] >= 10) {
+			Frame[4]++;
+			FrameTimer[4] = 0;
+			if (Frame[4] >= MaxFrame[4]) {
+				Frame[4] = 0;
+			}
+		}
+
+		Novice::DrawSpriteRect(
+			400, 200,
+			425 * (Frame[4] % 10), 540 * (Frame[4] / 10),
+			425, 540, rakkaStumei,
+			0.05f, 0.5f, 0.0f, 0xFFFFFFFF);
+
+		FrameTimer[5]++;
+		if (FrameTimer[5] >= 10) {
+			Frame[5]++;
+			FrameTimer[5] = 0;
+			if (Frame[5] >= MaxFrame[5]) {
+				Frame[5] = 0;
+			}
+		}
+
+		Novice::DrawSpriteRect(
+			900, 200,
+			380 * (Frame[5] % 10), 835 * (Frame[5] / 10),
+			380, 835, goalStumei,
+			0.05f, 0.166666667f, 0.0f, 0xFFFFFFFF);
+
+
+		break;
+	}
 	case SceneType::STAGESELECT:
 	{
 		// ------------------------------
@@ -858,7 +1005,7 @@ void SceneManager::Draw()
 						kFillModeSolid
 					);
 
-					
+
 				}
 
 
@@ -869,7 +1016,7 @@ void SceneManager::Draw()
 					color,
 					kFillModeSolid
 				);
-				
+
 				if (isSelected) {
 					Novice::DrawSpriteRect(
 						(int)titlePlayer.pos.x,
@@ -881,9 +1028,9 @@ void SceneManager::Draw()
 						0xFFFFFFFF
 					);
 
-	
 
-					
+
+
 				}
 				// ------------------------------
 			// スクロールバー
@@ -924,7 +1071,7 @@ void SceneManager::Draw()
 				// --------------------------
 				int doorX = x + (kTileW / 2 - 32);
 				int doorY = y + 5;
-	
+
 
 				if (isSelected)
 				{
@@ -949,12 +1096,12 @@ void SceneManager::Draw()
 				}
 
 			}
-			
-			
+
+
 
 		}
-		
-		
+
+
 	}
 	break;
 
@@ -963,16 +1110,20 @@ void SceneManager::Draw()
 		CloudDraw();
 		player_->Draw();
 		DrawEntities();
-		if (HitStop::Instance().IsActive()) {
+		if (HitStop::Instance().IsActive() && HitStopActivetoSentaku) {
 			FrameTimer[2]++;
-			if (FrameTimer[2]>=3) {
+			if (FrameTimer[2] >= 3) {
 				Frame[2]++;
 				FrameTimer[2] = 0;
 				if (Frame[2] > MaxFrame[2]) {
 					Frame[2] = MaxFrame[2];
 				}
 			}
+			if ((Novice::IsPlayingAudio(countDownActive) == 0 || countDownActive == -1)) {
 
+				countDownActive = Novice::PlayAudio(countDown, 0, 1);
+
+			}
 			Novice::DrawSpriteRect(0, 255, Frame[2] * 300, 0, 300, 70, actionTex, 0.0975609756f, 3.0f, 0.0f, 0xFFFFFFFF);
 		}
 		break;
