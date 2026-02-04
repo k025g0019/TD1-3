@@ -101,13 +101,14 @@ private:
 	int fireHandle = -1;
 	int BGM = -1;
 	int countDown = -1;
-
+	int BottonHandle = -1;
 	int titleHandleActive = -1;
 	int chargeHandleActive = -1;
 	int chargeAccentHandleActive = -1;
 	int fireHandleActive = -1;
 	int BGMActive = -1;
 	int countDownActive = -1;
+	int BottonHandleActive = -1;
 	//========================================================================================================
 
 	bool HitStopActivetoSentaku = false;

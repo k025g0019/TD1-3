@@ -135,7 +135,7 @@ SceneManager::SceneManager()
 	doorTexture[0] = Novice::LoadTexture("./Resource/Image/stageSelectseiteki.png");
 	doorTexture[1] = Novice::LoadTexture("./Resource/Image/stageSelect.png");
 	doorTexture[2] = Novice::LoadTexture("./Resource/Image/stageSelectclear.png");
-
+	BottonHandle = Novice::LoadAudio("./Resource/Music/BOtton.mp3");
 	doorTexture[3] = Novice::LoadTexture("./Resource/Image/stageSelectclearDO.png");
 
 	titleHandle = Novice::LoadAudio("./Resource/Music/Title.wav");
@@ -483,7 +483,7 @@ void SceneManager::Update(char* keys, char* preKeys)
 					Camera::Instance().Reset();        // ★最重要
 					Camera::Instance().Follow(0, 0);
 					InitializeMap();
-					LoadMapLDtk("./Map/mano.ldtk", currentStageNo_);
+					LoadMapLDtk("./Map/Map1.ldtk", currentStageNo_);
 					player_->Initialize();
 
 					stageSelectState_ = StageSelectState::SELECT;
@@ -650,6 +650,11 @@ void SceneManager::Update(char* keys, char* preKeys)
 				Novice::IsTriggerMouse(0)
 				))
 		{
+			if ((Novice::IsPlayingAudio(BottonHandleActive) == 0 || BottonHandleActive == -1)) {
+
+				BottonHandleActive = Novice::PlayAudio(BottonHandle, 0, 1);
+
+			}
 
 			stageSelectState_ = StageSelectState::ENTERING;
 			titleState_ = TitlePlayerState::CHARGE;
@@ -775,15 +780,37 @@ void SceneManager::Update(char* keys, char* preKeys)
 		{
 			if (pauseCursor_ == 0)
 			{
+
+					BottonHandleActive = Novice::PlayAudio(BottonHandle, 0, 1);
+
+				
 				currentScene_ = SceneType::PLAY;
 			}
 			if (pauseCursor_ == 1)
 			{
+				
+
+					BottonHandleActive = Novice::PlayAudio(BottonHandle, 0, 1);
+
+				
 				StartFade(SceneType::STAGESELECT);
 			}
 			if (pauseCursor_ == 2)
 			{
+				
 
+					BottonHandleActive = Novice::PlayAudio(BottonHandle, 0, 1);
+
+				
+
+				for (int i = 0; i < 5; i++) {
+					Frame[i] = 0;
+					FrameTimer[i] = 0;
+				}
+				Camera::Instance().Reset();        // ★最重要
+				Camera::Instance().Follow(0, 0);
+				InitializeMap();
+				LoadMapLDtk("./Map/Map1.ldtk", currentStageNo_);
 				player_->Initialize();
 				currentScene_ = SceneType::PLAY;
 			}
@@ -801,6 +828,14 @@ void SceneManager::Update(char* keys, char* preKeys)
 				StartFade(SceneType::STAGESELECT);
 			}
 			if (pauseButtons_[2].IsHovered(mx, my)) {
+				for (int i = 0; i < 5; i++) {
+					Frame[i] = 0;
+					FrameTimer[i] = 0;
+				}
+				Camera::Instance().Reset();        // ★最重要
+				Camera::Instance().Follow(0, 0);
+				InitializeMap();
+				LoadMapLDtk("./Map/Map1.ldtk", currentStageNo_);
 				player_->Initialize();
 				currentScene_ = SceneType::PLAY;
 			}
@@ -959,7 +994,7 @@ void SceneManager::Draw()
 			50,
 			30,
 			"ステージセレクト",
-			16,
+			32,
 			0xFFFFFFFF
 		);
 
@@ -967,11 +1002,11 @@ void SceneManager::Draw()
 			50,
 			60,
 			"WASD / マウス || Space / クリック",
-			16,
+			32,
 			0xFFFFFFFF
 		);
 
-
+		DrawBitmapString(1250, 320, "マ\nウ\nス\nス\nク\nロ\nー\nル", 32, 0xFFFFFFFF);
 		// ------------------------------
 		// スクロール位置計算
 		// ------------------------------

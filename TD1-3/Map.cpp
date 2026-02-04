@@ -26,6 +26,7 @@ int SwitchPusshTex = -1;
 int warpTex = -1;
 int CloudTex = -1;
 int OpenTex = -1;
+int tutoTex = -1;
 int GoalTex = -1;
 int backGroundTex1 = -1;
 int backGroundTex2 = -1;
@@ -91,7 +92,7 @@ void InitializeMap()
 	backGroundTex2 = Novice::LoadTexture("./Resource/Image/natu.png");
 	backGroundTex3 = Novice::LoadTexture("./Resource/Image/aki.png");
 	backGroundTex4 = Novice::LoadTexture("./Resource/Image/huyu.png");
-
+	tutoTex = Novice::LoadTexture("./Resource/Image/tutorial.png");
 	for (int y = 0; y < MAP_HEIGHT; y++) {
 		for (int x = 0; x < MAP_WIDTH; x++)
 		{
@@ -692,6 +693,7 @@ void DrawEntities()
 			gActiveTextEntity == i &&
 			gEntities[i].text[0] != '\0')
 		{
+
 			DrawBitmapString(
 				0,
 				600,
