@@ -719,18 +719,6 @@ void SceneManager::Update(char* keys, char* preKeys)
 			StartFade(SceneType::CLEAR);
 		}
 
-		// デバッグ: 2でゲームオーバー
-		if (keys[DIK_2] && !preKeys[DIK_2]) StartFade(SceneType::GAMEOVER);
-
-		// ★デバッグ: 1でクリア
-		if (keys[DIK_1] && !preKeys[DIK_1])
-		{
-			if (currentStageNo_ >= 0 && currentStageNo_ < kMaxStages)
-			{
-				gStageClearFlags[currentStageNo_] = true;
-			}
-			StartFade(SceneType::CLEAR);
-		}
 
 		// PAUSE画面へ
 		if ((keys[DIK_P] && !preKeys[DIK_P]) || Novice::IsTriggerButton(0, kPadButton4))
@@ -797,7 +785,7 @@ void SceneManager::Update(char* keys, char* preKeys)
 			{
 
 				player_->Initialize();
-				previousScene_ = SceneType::PLAY;
+				currentScene_ = SceneType::PLAY;
 			}
 		}
 
@@ -814,7 +802,7 @@ void SceneManager::Update(char* keys, char* preKeys)
 			}
 			if (pauseButtons_[2].IsHovered(mx, my)) {
 				player_->Initialize();
-				previousScene_ = SceneType::PLAY;
+				currentScene_ = SceneType::PLAY;
 			}
 		}
 
@@ -1085,11 +1073,11 @@ void SceneManager::Draw()
 					);
 
 				}
-				
+
 
 				if (isCleared)
 				{
-					DrawBitmapString(x + 100, y + 10, "CLEAR!", 16,0xFFFFFFFF );
+					DrawBitmapString(x + 100, y, "CLEAR!", 16,0xFFFFFFFF );
 				}
 
 				// --------------------------
@@ -1160,6 +1148,7 @@ void SceneManager::Draw()
 			}
 			Novice::DrawSpriteRect(0, 255, Frame[2] * 300, 0, 300, 70, actionTex, 0.0975609756f, 3.0f, 0.0f, 0xFFFFFFFF);
 		}
+		DrawBitmapString(1100, 8, "Pでポーズ", 32, 0xFFFFFFFF);
 		break;
 
 
