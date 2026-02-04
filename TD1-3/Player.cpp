@@ -10,6 +10,7 @@ bool gWasTouchingFontEntity = false;
 extern bool gIsTouchingFontEntity;
 extern bool gFontPauseActive;
 extern int gActiveTextEntity;
+const float EPS = 0.1f; // 微小オフセット（再衝突防止）
 
 void Player::UpdeteLeftJoystik() {
 	if (Novice::IsPressButton(0, kPadButton10)) {
@@ -87,6 +88,7 @@ void Player::DoHitStop(int frames) {
 void Player::Update() {
 	gIsTouchingFontEntity = false;
 	gActiveTextEntity = -1;
+	status.prevPos = status.pos;
 
 	if (Novice::GetNumberOfJoysticks() >= 1) {
 		UpdeteLeftJoystik();
@@ -294,7 +296,7 @@ void Player::Update() {
 		float playerRight = status.pos.x + status.radius;
 		// Entity 上面
 		float entityTop = ey;
-		float entityRight = ex+ew;
+		float entityRight = ex + ew;
 		float entityLeft = ex;
 		float nearestX = fmaxf(ex, fminf(status.pos.x, ex + ew));
 		float nearestY = fmaxf(ey, fminf(status.pos.y, ey + eh));
@@ -302,9 +304,13 @@ void Player::Update() {
 		float dx = status.pos.x - nearestX;
 		float dy = status.pos.y - 5 - nearestY;
 
+		float prevBottom = status.prevPos.y + status.radius;
+		float currBottom = status.pos.y + status.radius;
+
 		bool hitFromTop =
 			(status.vel.y > 0.0f) &&
-			(playerBottom <= entityTop + 10.0f);
+			(prevBottom <= entityTop + 10.0f) &&
+			(currBottom >= entityTop - 10.0f);
 
 		bool hitFromLeft =
 			(status.vel.x > 0.0f) &&
@@ -313,6 +319,7 @@ void Player::Update() {
 		bool hitFromRight =
 			(status.vel.x < 0.0f) &&
 			(playerLeft <= entityRight);
+
 
 		// =========================
 // 地面停止 → ゲームオーバー判定
@@ -335,7 +342,7 @@ void Player::Update() {
 				// トランポリン
 				//
 				// ▼ 上から踏んだときだけ
-				if (status.vel.y > 0.0f && playerBottom < entityTop + 10.0f)
+				if (hitFromTop)
 				{
 
 					// トランポリン反発
@@ -372,20 +379,33 @@ void Player::Update() {
 
 			case ENTITY_Trampoline_R:
 
-				
+
 
 				if (hitFromTop || hitFromLeft)
 				{
 
-					if (!hitFromLeft) {
+					if (hitFromLeft) {
 						moveDirX *= -1.0f;
+						status.vel.x = -fabsf(status.vel.x) * 1.1f - 100.0f; // 右へ
 					}
+					else {
+						status.vel.x = status.vel.x * 1.1f - 100.0f; // 右へ
+					}
+
+
 					status.vel.y = -fabsf(status.vel.y) * 1.2f - 200.0f;
-					
+
 					jumpAvailable = true;
 					// めり込み防止（少し上に戻す）
-					status.pos.y = entityTop - status.radius;
-					status.vel.x = -fabsf(status.vel.x); // 右へ
+
+					if (hitFromTop)
+					{
+						status.pos.y = entityTop - status.radius - 0.1f;
+					}
+					else if (hitFromLeft)
+					{
+						status.pos.x = entityLeft + status.radius + 0.1f;
+					}
 					gTrampolineAnimR[i].isPlaying = true;
 					gTrampolineAnimR[i].frame = 0;
 
@@ -394,19 +414,31 @@ void Player::Update() {
 			case ENTITY_Trampoline_L:
 
 
-				
+
 
 				if (hitFromTop || hitFromRight)
 				{
-					if (!hitFromRight) {
+					if (hitFromRight) {
 						moveDirX *= -1.0f;
+						status.vel.x = fabsf(status.vel.x) * 1.1f + 100.0f; // 右へ
+					}
+					else {
+						status.vel.x = status.vel.x * 1.1f + 100.0f; // 右へ
 					}
 					status.vel.y = -fabsf(status.vel.y) * 1.2f - 200.0f;
-					
+
 					jumpAvailable = true;
 					// めり込み防止（少し上に戻す）
-					status.pos.y = entityTop - status.radius;
-					status.vel.x = fabsf(status.vel.x); // 右へ
+
+					/* --- めり込み防止（方向別） --- */
+					if (hitFromTop)
+					{
+						status.pos.y = entityTop - status.radius - 0.1f;
+					}
+					else if (hitFromRight)
+					{
+						status.pos.x = entityRight - status.radius - 0.1f;
+					}
 					gTrampolineAnimL[i].isPlaying = true;
 					gTrampolineAnimL[i].frame = 0;
 

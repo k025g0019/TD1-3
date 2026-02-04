@@ -1071,15 +1071,21 @@ void SceneManager::Draw()
 				// --------------------------
 				// "STAGE" 文字（必要なら画像 or ScreenPrintf）
 
-				DrawBitmapString(x + 20, y + 15, "STAGE", 16, 0xFFFFFFFF);
+				DrawBitmapString(x + 20, y + 15, "STAGE", 20, 0xFFFFFFFF);
 				// 数字だけ画像で描画
-				DrawNumber(
-					x + 20,
-					y + 45,
-					stageIdx + 1,
-					0.8f   // スケール調整
-				);
 
+				if (stageIdx== 0) {
+					DrawBitmapString(x + 20, y + 45, "チュートリアル", 16, 0xFFFFFFFF);
+				}else {
+					DrawNumber(
+						x + 20,
+						y + 45,
+						stageIdx + 1,
+						0.8f   // スケール調整
+					);
+
+				}
+				
 
 				if (isCleared)
 				{
@@ -1155,6 +1161,7 @@ void SceneManager::Draw()
 			Novice::DrawSpriteRect(0, 255, Frame[2] * 300, 0, 300, 70, actionTex, 0.0975609756f, 3.0f, 0.0f, 0xFFFFFFFF);
 		}
 		break;
+
 
 	case SceneType::CLEAR:
 		Novice::DrawSpriteRect(0, 0, 0, 0, 1280, 720, gameClearImage_, 1.0f, 1.0f, 0.0f, 0xFFFFFFFF);
