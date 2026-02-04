@@ -451,13 +451,13 @@ void DrawBitmapString(
         if (text[i] == '\n')
         {
             cursorX = x;
-            y += (int)(GLYPH_H);
+            y += (int)(scale);
             i += 1;
             continue;
         }
         if (text[i] == ' ')
         {
-            cursorX += (int)(GLYPH_W);
+            cursorX += (int)(scale);
             i += 1;
             continue;
         }
@@ -503,9 +503,10 @@ void DrawBitmapString(
                     if (glyph)
                     {
                         tex = gTexTokusyu;
+                        scaraFontX = scale / 704;
+                        scaraFontY = scale / 320;
                     }
-                    scaraFontX = scale / 704;
-                    scaraFontY = scale / 320;
+                   
                 }
             }
         }
@@ -529,7 +530,7 @@ void DrawBitmapString(
         }
 
         // 次の文字位置へ（等幅）
-        cursorX += (int)(GLYPH_W);
+        cursorX += (int)(scale);
         i += bytes;
     }
 }
