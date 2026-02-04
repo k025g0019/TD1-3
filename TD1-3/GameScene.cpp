@@ -128,6 +128,7 @@ void SceneManager::InitTitle()
 // SceneManager のコンストラクタ
 SceneManager::SceneManager()
 {
+	FontDrawer_Initialize();
 	HitStopActivetoSentaku = false;
 	numberTexture = Novice::LoadTexture("./Resource/Image/Number.png");
 	actionTex = Novice::LoadTexture("./Resource/Image/Start.png");
@@ -214,6 +215,9 @@ SceneManager::SceneManager()
 	animFrame_ = 0;
 	animTimer_ = 0.0f;
 }
+
+
+
 
 // ------------------------------------------------------------
 // マップ描画関数
@@ -736,8 +740,9 @@ void SceneManager::Update(char* keys, char* preKeys)
 		break;
 
 	case SceneType::CLEAR:
-		if (Novice::IsPressMouse(0) || Novice::IsTriggerButton(0, kPadButton10))
-		{
+		if (keys[DIK_SPACE] && !preKeys[DIK_SPACE] ||
+			Novice::IsTriggerButton(0, kPadButton10) ||
+			Novice::IsTriggerMouse(0)){
 			StartFade(SceneType::STAGESELECT); // クリア後はセレクトに戻る設定に統一
 			animTimer_ = 0; animFrame_ = 0;
 		}
@@ -756,7 +761,9 @@ void SceneManager::Update(char* keys, char* preKeys)
 			animTimer_ = 0; animFrame_++;
 			if (animFrame_ >= 10) animFrame_ = 9;
 		}
-		if (Novice::IsPressMouse(0) || Novice::IsTriggerButton(0, kPadButton10))
+		if (keys[DIK_SPACE] && !preKeys[DIK_SPACE] ||
+			Novice::IsTriggerButton(0, kPadButton10) ||
+			Novice::IsTriggerMouse(0))
 		{
 			StartFade(SceneType::STAGESELECT);
 			animTimer_ = 0; animFrame_ = 0;
@@ -788,8 +795,9 @@ void SceneManager::Update(char* keys, char* preKeys)
 			}
 			if (pauseCursor_ == 2)
 			{
-				previousScene_ = SceneType::PAUSE;
-				StartFade(SceneType::STAGESELECT);
+
+				player_->Initialize();
+				previousScene_ = SceneType::PLAY;
 			}
 		}
 
@@ -803,6 +811,10 @@ void SceneManager::Update(char* keys, char* preKeys)
 			if (pauseButtons_[1].IsHovered(mx, my))
 			{
 				StartFade(SceneType::STAGESELECT);
+			}
+			if (pauseButtons_[2].IsHovered(mx, my)) {
+				player_->Initialize();
+				previousScene_ = SceneType::PLAY;
 			}
 		}
 
@@ -950,12 +962,27 @@ void SceneManager::Draw()
 		);
 
 
+
+
 		// ------------------------------
 		// UIテキスト
 		// ------------------------------
-		Novice::ScreenPrintf(50, 30, "SELECT STAGE");
-		Novice::ScreenPrintf(50, 50, "WASD / Arrow / Wheel / Mouse : Select");
-		Novice::ScreenPrintf(50, 70, "SPACE / ENTER / PAD-A / Click : Decide");
+		DrawBitmapString(
+			50,
+			30,
+			"ステージセレクト",
+			16,
+			0xFFFFFFFF
+		);
+
+		DrawBitmapString(
+			50,
+			60,
+			"WASD / マウス || Space / クリック",
+			16,
+			0xFFFFFFFF
+		);
+
 
 		// ------------------------------
 		// スクロール位置計算
@@ -972,6 +999,7 @@ void SceneManager::Draw()
 				Frame[1] = 0;
 			}
 		}
+
 		// ------------------------------
 		// グリッド描画
 		// ------------------------------
@@ -1042,8 +1070,8 @@ void SceneManager::Draw()
 				// ステージ番号
 				// --------------------------
 				// "STAGE" 文字（必要なら画像 or ScreenPrintf）
-				Novice::ScreenPrintf(x + 20, y + 15, "STAGE");
 
+				DrawBitmapString(x + 20, y + 15, "STAGE", 16, 0xFFFFFFFF);
 				// 数字だけ画像で描画
 				DrawNumber(
 					x + 20,
@@ -1055,7 +1083,7 @@ void SceneManager::Draw()
 
 				if (isCleared)
 				{
-					Novice::ScreenPrintf(x + 100, y + 10, "★CLEAR!");
+					DrawBitmapString(x + 100, y + 10, "CLEAR!", 16,0xFFFFFFFF );
 				}
 
 				// --------------------------
@@ -1101,9 +1129,9 @@ void SceneManager::Draw()
 
 		}
 
-
+		break;
 	}
-	break;
+
 
 	case SceneType::PLAY:
 		DrawMapChips();

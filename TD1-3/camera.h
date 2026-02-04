@@ -22,6 +22,9 @@ public:
 
 	// ▼ カメラ振動（既存）
 	void StartShake(int duration, float range);
+
+	
+
 	void UpdateShake();
 
 private:

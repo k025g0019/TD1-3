@@ -1,8 +1,8 @@
 ﻿#pragma once
 #include <Novice.h>
-#include "camera.h"
-#include "Vector.h"
 #include "HitStop.h"
+#include "Vector.h"
+#include "camera.h"
 #define MAP_HEIGHT 45
 #define MAP_WIDTH  180
 
@@ -19,8 +19,8 @@ extern int gActiveTextEntity;
 // ★ 追加
 extern bool gIsTouchingFontEntity;
 extern bool gFontPauseActive;
-enum EntityType
-{
+
+enum EntityType {
 	ENTITY_Entity,
 	ENTITY_Trampoline_R,
 	ENTITY_Trampoline_L,
@@ -32,8 +32,9 @@ enum EntityType
 	ENTITY_WARP,
 	ENTITY_FONT
 };
-typedef struct Entity
-{
+
+
+using Entity = struct Entity {
 	char name[32];
 	EntityType types;
 	int x, y;
@@ -46,14 +47,14 @@ typedef struct Entity
 
 	// ★ 追加：LDtk の String フィールド用
 	char text[128];
-} Entity;
+};
 
 struct TrampolineAnimState {
 	bool isPlaying;
 	int frame;
 };
-extern int gActiveTextEntity;
 
+extern int gActiveTextEntity;
 
 
 struct SwitchState {
@@ -67,7 +68,7 @@ struct CloudState {
 	bool active;
 	Vector2 Enlargement;
 	int a;
-	unsigned  int color;
+	unsigned int color;
 };
 
 
@@ -76,11 +77,11 @@ extern SwitchState switchState;
 extern Entity gEntities[MAX_ENTITIES];
 extern int gEntityCount;
 
-extern  TrampolineAnimState gTrampolineAnim[MAX_ENTITIES];
+extern TrampolineAnimState gTrampolineAnim[MAX_ENTITIES];
 
-extern  TrampolineAnimState gTrampolineAnimR[MAX_ENTITIES];
+extern TrampolineAnimState gTrampolineAnimR[MAX_ENTITIES];
 
-extern  TrampolineAnimState gTrampolineAnimL[MAX_ENTITIES];
+extern TrampolineAnimState gTrampolineAnimL[MAX_ENTITIES];
 
 extern int gMap[MAP_HEIGHT][MAP_WIDTH];
 extern int gVisualMap[MAP_HEIGHT][MAP_WIDTH];
@@ -94,6 +95,7 @@ void DrawMapChips(void);
 void DrawEntities(void);
 
 void UpdateEntity();
+
 enum MapType {
 	MAP_EMPTY = 0,
 	MAP_WALL = 1,

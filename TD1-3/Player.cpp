@@ -54,7 +54,7 @@ Player::~Player()
 
 void Player::Initialize()
 {
-
+	isEasingActive = false;
 	isDead_ = false;
 	status.pos = { 50.0f, 60.0f };
 	status.vel = { 250.0f, 0.0f };   // px/s
@@ -290,14 +290,30 @@ void Player::Update() {
 
 		// プレイヤー足元
 		float playerBottom = status.pos.y + status.radius;
-
+		float playerLeft = status.pos.x - status.radius;
+		float playerRight = status.pos.x + status.radius;
 		// Entity 上面
 		float entityTop = ey;
+		float entityRight = ex+ew;
+		float entityLeft = ex;
 		float nearestX = fmaxf(ex, fminf(status.pos.x, ex + ew));
 		float nearestY = fmaxf(ey, fminf(status.pos.y, ey + eh));
 
 		float dx = status.pos.x - nearestX;
 		float dy = status.pos.y - 5 - nearestY;
+
+		bool hitFromTop =
+			(status.vel.y > 0.0f) &&
+			(playerBottom <= entityTop + 10.0f);
+
+		bool hitFromLeft =
+			(status.vel.x > 0.0f) &&
+			(playerRight >= entityLeft);
+
+		bool hitFromRight =
+			(status.vel.x < 0.0f) &&
+			(playerLeft <= entityRight);
+
 		// =========================
 // 地面停止 → ゲームオーバー判定
 // =========================
@@ -355,10 +371,17 @@ void Player::Update() {
 				break;
 
 			case ENTITY_Trampoline_R:
-				if (status.vel.y > 0.0f && playerBottom < entityTop + 10.0f)
+
+				
+
+				if (hitFromTop || hitFromLeft)
 				{
+
+					if (!hitFromLeft) {
+						moveDirX *= -1.0f;
+					}
 					status.vel.y = -fabsf(status.vel.y) * 1.2f - 200.0f;
-					moveDirX *= -1.0f;
+					
 					jumpAvailable = true;
 					// めり込み防止（少し上に戻す）
 					status.pos.y = entityTop - status.radius;
@@ -370,10 +393,16 @@ void Player::Update() {
 				break;
 			case ENTITY_Trampoline_L:
 
-				if (status.vel.y > 0.0f && playerBottom < entityTop + 10.0f)
+
+				
+
+				if (hitFromTop || hitFromRight)
 				{
+					if (!hitFromRight) {
+						moveDirX *= -1.0f;
+					}
 					status.vel.y = -fabsf(status.vel.y) * 1.2f - 200.0f;
-					moveDirX *= -1.0f;
+					
 					jumpAvailable = true;
 					// めり込み防止（少し上に戻す）
 					status.pos.y = entityTop - status.radius;
@@ -460,7 +489,7 @@ void Player::Update() {
 				if (isWarping_) break;
 
 
-				if (fabsf(dx) > fabsf(dy) && dx < 0.0f)
+				if (fabsf(dx) > fabsf(dy))
 				{
 					int srcWarpId = gEntities[i].warpId;
 					if (srcWarpId < 0) break;
