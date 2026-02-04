@@ -55,6 +55,9 @@ Player::~Player()
 
 void Player::Initialize()
 {
+	warpClonePos_.x = -100;
+		warpClonePos_.y = -100;
+	isCloneActive_ = false;
 	isEasingActive = false;
 	isDead_ = false;
 	status.pos = { 50.0f, 60.0f };

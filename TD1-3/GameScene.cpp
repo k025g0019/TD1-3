@@ -483,7 +483,7 @@ void SceneManager::Update(char* keys, char* preKeys)
 					Camera::Instance().Reset();        // ★最重要
 					Camera::Instance().Follow(0, 0);
 					InitializeMap();
-					LoadMapLDtk("./Map/Map1.ldtk", currentStageNo_);
+					LoadMapLDtk("./Map/mano.ldtk", currentStageNo_);
 					player_->Initialize();
 
 					stageSelectState_ = StageSelectState::SELECT;
