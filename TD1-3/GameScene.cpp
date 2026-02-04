@@ -19,7 +19,7 @@ StageSelectState stageSelectState_ = StageSelectState::SELECT;
 
 int kWindowWidth = 1280;
 int kWindowHeight = 720;
-const int kMaxStages = 100; // ステージ総数
+const int kMaxStages = 50; // ステージ総数
 
 // グリッドUI設定
 const int kCols = 5;        // 横に並べる数
