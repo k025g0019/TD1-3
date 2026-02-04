@@ -1,4 +1,4 @@
-#include <stdio.h>
+﻿#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include "Map.h"
@@ -141,7 +141,7 @@ int LoadMapLDtk(const char* filePath, int levelIndex)
 		cJSON_Delete(root);
 		return 0;
 	}
-
+	
 	cJSON* level = cJSON_GetArrayItem(levels, levelIndex);
 	cJSON* layers = cJSON_GetObjectItem(level, "layerInstances");
 	int layerCount = cJSON_GetArraySize(layers);
@@ -465,19 +465,19 @@ void DrawMapChips(void)
 	switch (siki)
 	{
 	case 1:
-		Novice::DrawSprite(static_cast<int>(cam.x), 0, backGroundTex1, 1.0f, 1.0f, 0.0f, 0xFFFFFFFF);
+		Novice::DrawSprite(static_cast<int>(cam.x), 0, backGroundTex1, 1.0f, 1.0f, 0.0f, 0xFFFFFFAA);
 		break;
 	case 2:
-		Novice::DrawSprite(static_cast<int>(cam.x), 0, backGroundTex2, 1.0f, 1.0f, 0.0f, 0xFFFFFFFF);
+		Novice::DrawSprite(static_cast<int>(cam.x), 0, backGroundTex2, 1.0f, 1.0f, 0.0f, 0xFFFFFFAA);
 		break;
 	case 3:
-		Novice::DrawSprite(static_cast<int>(cam.x), 0, backGroundTex3, 1.0f, 1.0f, 0.0f, 0xFFFFFFFF);
+		Novice::DrawSprite(static_cast<int>(cam.x), 0, backGroundTex3, 1.0f, 1.0f, 0.0f, 0xFFFFFFAA);
 		break;
 	case 4:
-		Novice::DrawSprite(static_cast<int>(cam.x), 0, backGroundTex4, 1.0f, 1.0f, 0.0f, 0xFFFFFFFF);
+		Novice::DrawSprite(static_cast<int>(cam.x), 0, backGroundTex4, 1.0f, 1.0f, 0.0f, 0xFFFFFFAA);
 		break;
 	}
- 	Novice::DrawSprite(static_cast<int>(2494+cam.x), 0, GoalTex, 1.0f, 1.0f, 0.0f, 0xFFFFFFFF);
+ 	Novice::DrawSprite(static_cast<int>(2816+cam.x), 0, GoalTex, 1.0f, 1.0f, 0.0f, 0xFFFFFFFF);
 
 	for (int y = 0; y < MAP_HEIGHT; y++)
 	{
@@ -784,7 +784,7 @@ void CloudDraw() {
 	Camera& cam = Camera::Instance();
 	srand(int(time(nullptr)));
 	for (int i = 0; i <= 20; i++) {
-		
+
 		if (!cloudState[i].active) {
 			cloudState[i].pos.x = float(rand() % 4000);
 			cloudState[i].pos.y = float(rand() % 200);
@@ -804,7 +804,7 @@ void CloudDraw() {
 			if (!HitStop::Instance().IsActive()) {
 				cloudState[i].pos.x -= cloudState[i].vel.x;
 			}
-			
+
 			Novice::DrawSprite(
 				static_cast<int>(cloudState[i].pos.x+cam.x), static_cast<int>(cloudState[i].pos.y+cam.y),
 				CloudTex, cloudState[i].Enlargement.x, cloudState[i].Enlargement.y,
