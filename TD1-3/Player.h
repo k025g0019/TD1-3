@@ -10,6 +10,7 @@ public:
 		Vector2 pos = { 0.0f,0.0f };
 		Vector2 vel = { 0.0f,0.0f };
 		float radius = 25.0f;
+		Vector2 prevPos;
 
 	};
 	enum class PoseState {
