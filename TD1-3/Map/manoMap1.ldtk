@@ -7396,7 +7396,7 @@
 						},
 						{
 							"__identifier": "Warp",
-							"__grid": [1,7],
+							"__grid": [0,7],
 							"__pivot": [0.5,0.5],
 							"__tags": [],
 							"__tile": null,
@@ -7405,7 +7405,7 @@
 							"width": 64,
 							"height": 256,
 							"defUid": 673,
-							"px": [24,120],
+							"px": [8,120],
 							"fieldInstances": [{ "__identifier": "warpId", "__type": "Int", "__value": 0, "__tile": null, "defUid": 675, "realEditorValues": [] }]
 						}
 					]
