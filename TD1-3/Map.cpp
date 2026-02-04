@@ -441,8 +441,8 @@ static void DrawTile(int x, int y, int tileIndex)
 	if (tileIndex < 0) return;
 
 
-	int srcX = (tileIndex % SHEET_COLS) * CHIP_W;
-	int srcY = (tileIndex / SHEET_COLS) * CHIP_H;
+	int srcX = 0* CHIP_W;
+	int srcY = 0 * CHIP_H;
 	Number++;
 	gCollisionMap;
 	printf("%d", Number);
@@ -451,7 +451,7 @@ static void DrawTile(int x, int y, int tileIndex)
 		srcX, srcY,
 		CHIP_W, CHIP_H,
 		gChipSheetHandle,
-		0.05f, 0.0714f,
+		1.0f, 1.0f,
 		0.0f,
 		0xFFFFFFFF
 	);
